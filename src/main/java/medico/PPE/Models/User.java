@@ -22,7 +22,6 @@ public class User {
 	@Column(name = "email", unique=true)
 
 	private String email;
-
 	public String getUsername() {
 		return username;
 	}
@@ -54,7 +53,7 @@ public class User {
 
 
 	@Enumerated(EnumType.STRING)
-	private UserRole role=UserRole.valueOf("ADMIN");
+	private UserRole role=UserRole.valueOf("USER");
 
 	@Column(name = "lastseen")
 	@Transient

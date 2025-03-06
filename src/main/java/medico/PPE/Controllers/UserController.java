@@ -1,10 +1,9 @@
 package medico.PPE.Controllers;
 
-import jakarta.validation.Valid;
-import medico.PPE.Models.LoginRequest;
+
 import medico.PPE.Models.User;
 import medico.PPE.Services.UserService;
-import medico.PPE.dtos.UserDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +32,8 @@ public class UserController {
 
 
     @PutMapping("/update/{Id}")
-    public UserDto update(@PathVariable Long Id, @RequestBody UserDto user) throws Exception{
-        UserDto updatedUser = userService.update(Id,user);
-        return  userService.update(Id, updatedUser);
+    public User update(@PathVariable Long Id, @RequestBody User  user) throws Exception{
+        return  userService.update(Id, user);
     }
 
      @DeleteMapping("/delete/{id}")
@@ -46,10 +44,5 @@ public class UserController {
     @GetMapping("/get/{id}")
     public User getUserById(@PathVariable Long id){
         return  userService.getUserById(id);
-    }
-
-    @PostMapping("/login")
-    public User login(@Valid @RequestBody User user)  {
-        return userService.login(user);
     }
 }

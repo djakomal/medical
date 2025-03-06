@@ -43,7 +43,7 @@ public class UserDto {
 
 
     @Enumerated(EnumType.STRING)
-    private UserRole role=UserRole.valueOf("ROLE_USER");
+    private UserRole role=UserRole.valueOf("USER");
 
     @Column(name = "lastseen")
     @Transient

@@ -1,11 +1,10 @@
 package medico.PPE.Services;
 
 import jakarta.transaction.Transactional;
-import medico.PPE.Controllers.config.PasswordEncoder;
+
 import medico.PPE.Models.User;
 import medico.PPE.Repositories.UserRepository;
-import medico.PPE.dtos.UserDto;
-import medico.PPE.exceptions.ConnexionException;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,8 +17,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
 
 
     @Override
@@ -46,14 +44,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto update(Long Id , UserDto user) throws Exception {
+    public User update(Long Id , User user) throws Exception {
             //User UserExisting = UserRepository.findById(user.getId());
             User userExisting = userRepository.findById(user.getId())
                     .orElseThrow(() -> new Exception("User not found with id: " + user.getId()));
             //orElseThrow(()->new TaxesException(ExeceptionMessage.Taxe_UPDATE_FAILED_BY_ID ) );
             BeanUtils.copyProperties(user, userExisting);
             User updateUser= userRepository.save(userExisting);
-            return userdtomapper.mapToUserDto(updateUser);
+            return userdtomapper.mapToUser(updateUser);
     }
 
     @Override
@@ -67,19 +65,8 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
-    @Override
-    public User login(User loginRequest ) {
 
-        User users = userRepository.findByEmail(loginRequest.getEmail());
-        if (users==null) {
-            throw new ConnexionException("l'utilisateur n'existe pas ");
-        }else if(!users.getPassword().equals(loginRequest.getPassword())) {
-            throw new ConnexionException("  mot de passe invalid");
-        }else if(!users.getEmail().equals(loginRequest.getEmail())) {
-            throw new ConnexionException(" email invalid");
-        }
-        return users;
-    }
+
 
 
 }

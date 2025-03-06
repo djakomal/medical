@@ -12,5 +12,6 @@ public interface Userdtomapper {
     Userdtomapper userdtomapper = Mappers.getMapper(Userdtomapper.class);
     @Mapping(target = "username",ignore = true)
     UserDto mapToUserDto(User user);
-    User mapToUser(UserDto userDto);
+    @Mapping(target = "email",ignore = true)
+    User mapToUser(User userDto);
 }

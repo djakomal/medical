@@ -1,8 +1,7 @@
 package medico.PPE.Services;
 
-import medico.PPE.Models.LoginRequest;
 import medico.PPE.Models.User;
-import medico.PPE.dtos.UserDto;
+
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ public interface UserService {
 
     User add(User user);
 
-    UserDto update(Long Id, UserDto user) throws Exception;
+    User update(Long Id, User user) throws Exception;
 
     //void delete(Long userId);
 
@@ -21,7 +20,7 @@ public interface UserService {
 
     User getUserById(Long id);
 
-    User login(User loginRequest);
+
 
 
     // UserDetails loadUserByEmail(String username) throws UsernameNotFoundException;
