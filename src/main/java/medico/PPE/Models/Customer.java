@@ -1,8 +1,12 @@
 package medico.PPE.Models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Customer {
 
     @Id
@@ -14,8 +18,6 @@ public class Customer {
     private String password;
     @Column(name = "email")
     private String email;
-    @Column(name = "gender")
-    private String gender;
 
     public Long getId() {
         return id;
