@@ -1,7 +1,5 @@
 package medico.PPE.filters;
 
-;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,23 +34,36 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
+        // Vérifier si le token est présent dans l'en-tête Authorization
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = jwtUtil.extractUsername(token);
+            try {
+                username = jwtUtil.extractUsername(token);
+            } catch (Exception e) {
+                logger.error("JWT extraction failed: " + e.getMessage());
+            }
         }
 
+        // Si le username est présent et qu'aucune authentification n'est encore établie
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customerService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            // Vérifier si le token est valide
+            if (userDetails != null && jwtUtil.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            }
 
+                // Ajouter l'authentification au contexte de sécurité
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } else {
+                // Si le token est invalide ou expiré, envoyer une erreur 401
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                return;
+            }
         }
 
+        // Continuer la chaîne de filtres
         filterChain.doFilter(request, response);
-
     }
 }
