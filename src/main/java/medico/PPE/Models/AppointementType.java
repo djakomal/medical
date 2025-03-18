@@ -44,8 +44,8 @@ public class AppointementType {
         this.name = name;
     }
 
-    @Enumerated(EnumType.STRING)
-    private AppointmentTypeEnum type;
+
+    private AppointmentTypeEnum type=AppointmentTypeEnum.GENERAL;;
 
     @Column(name = "description")
     private String description;
@@ -54,6 +54,16 @@ public class AppointementType {
     private String name;
     @Column(name = "date")
     private String date;
+    @Column(name = "heure")
+    private String heure;
+
+    public String getHeure() {
+        return heure;
+    }
+
+    public void setHeure(String heure) {
+        this.heure = heure;
+    }
 
     public String getDate() {
         return date;

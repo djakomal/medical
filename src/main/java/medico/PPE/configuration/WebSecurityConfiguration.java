@@ -5,6 +5,7 @@ import medico.PPE.filters.JwtRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -38,10 +39,8 @@ public class WebSecurityConfiguration {
         return security.cors().and().csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/signup", "/login").permitAll()
-                .requestMatchers("/medico/type").authenticated()
-                .and()
-                .authorizeHttpRequests().requestMatchers("/medico/**")
-                .authenticated()
+                .requestMatchers(HttpMethod.POST, "/medico/type").authenticated() // Authentification requise
+                .anyRequest().permitAll() // Toutes les autres routes sont accessibles
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -49,6 +48,7 @@ public class WebSecurityConfiguration {
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
