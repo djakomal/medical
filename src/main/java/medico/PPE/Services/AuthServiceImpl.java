@@ -15,16 +15,12 @@ import java.util.List;
 public class AuthServiceImpl implements AuthService {
 
     private final CustomerRepository customerRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     @Autowired
     public AuthServiceImpl(CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
-
     @Override
     public Customer createCustomer(SignupRequest signupRequest) {
         //Check if customer already exist
@@ -42,12 +38,10 @@ public class AuthServiceImpl implements AuthService {
         customer.setId(createdCustomer.getId());
         return customer;
     }
-
     @Override
     public List<Customer> getAll() {
         return customerRepository.findAll();
     }
-
     @Override
     public void delete(Long Id) {
         /*Optional<Customer> optionalUser = userRepository.findById(Id);*/

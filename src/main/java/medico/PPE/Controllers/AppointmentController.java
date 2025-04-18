@@ -2,7 +2,6 @@ package medico.PPE.Controllers;
 
 import medico.PPE.Models.Appointment;
 import medico.PPE.Services.AppService;
-import medico.PPE.dtos.AppointmentDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

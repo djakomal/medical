@@ -13,15 +13,12 @@ public class AppointementTypeServiceImpl implements AppointementTypeService {
 
     @Autowired
     private AppointementTypeRepository repository;
-
     public List<AppointementType> getAllAppointments() {
         return repository.findAll();
     }
-
     public AppointementType getAppointmentById(Long id) {
         return repository.findById(id).orElse(null);
     }
-
     public AppointementType saveAppointment(AppointementType appointment) {
         return repository.save(appointment);
     }
@@ -37,7 +34,6 @@ public class AppointementTypeServiceImpl implements AppointementTypeService {
         }
         return null;
     }
-
     public void deleteAppointment(Long id) {
         repository.deleteById(id);
     }
