@@ -2,8 +2,10 @@ package medico.PPE.Models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,6 +20,7 @@ public class Customer {
     private String password;
     @Column(name = "email")
     private String email;
+
 
     public Long getId() {
         return id;

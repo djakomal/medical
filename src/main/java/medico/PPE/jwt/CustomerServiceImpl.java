@@ -30,4 +30,6 @@ public class CustomerServiceImpl implements UserDetailsService {
 
         return new User(customer.getEmail(), customer.getPassword(), Collections.emptyList());
     }
+
+
 }

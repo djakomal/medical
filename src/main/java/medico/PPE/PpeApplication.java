@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class PpeApplication {
 	public static void main(String[] args) {
+
 		SpringApplication.run(PpeApplication.class, args);
 	}
 	@Bean

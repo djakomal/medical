@@ -1,43 +1,61 @@
 package medico.PPE.Controllers;
 
-import medico.PPE.Models.Docteur;
+import jakarta.servlet.http.HttpServletResponse;
 import medico.PPE.Services.DocteurService;
+import medico.PPE.dtos.LoginRequest;
+import medico.PPE.dtos.LoginResponse;
+import medico.PPE.jwt.CustomerServiceImpl;
+import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
 
 @Controller
 @RestController
 @RequestMapping("/docteur")
 @CrossOrigin(origins = "http://localhost:4200")
 public class DocteurController {
-    @Autowired
-    private DocteurService docteurService;
 
-    // Inscription d'un docteur avec ses creanaux
-    @PostMapping("/add")
-    public Docteur Add(@RequestBody Docteur docteur) {
+    private final AuthenticationManager authenticationManager;
+    private final  DocteurService docteurService;;
+    private final JwtUtil jwtUtil;
+
+
+    @Autowired
+    public DocteurController( AuthenticationManager authenticationManager1, DocteurService docteurService, JwtUtil jwtUtil1) {
+        this.authenticationManager = authenticationManager1;
+        this.docteurService = docteurService;
+        this.jwtUtil = jwtUtil1;
+    }
+
+    @PostMapping
+    public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
         try {
-            Docteur nouveau = docteurService.add(docteur);
-            return docteurService.add(nouveau);
-        } catch (IllegalArgumentException e) {
-            return docteurService.badRequest().body(e.getMessage());
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Incorrect email or password.");
+        } catch (DisabledException disabledException) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer is not activated");
+            return null;
         }
 
+        final UserDetails userDetails = docteurService.loadUserByUsername(loginRequest.getEmail());
+
+
+
+        // Générer un JWT avec le rôle de l'utilisateur
+        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+
+        // Retourner le token JWT et le rôle
+        return new LoginResponse(jwt);
     }
-    @GetMapping
-    public List<Docteur> getAllDocteur(){
-        return docteurService.getAllDocteur();
-    }
-    @GetMapping("/{id}")
-    public Optional<Docteur> getDocteurById(@PathVariable Long id){
-        return docteurService.getById(id);
-    }
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
-         docteurService.deleteDocteur(id);
-    }
+
+
 }

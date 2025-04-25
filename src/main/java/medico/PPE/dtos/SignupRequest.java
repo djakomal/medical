@@ -1,6 +1,8 @@
 package medico.PPE.dtos;
 
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +17,8 @@ public class SignupRequest {
     private String password;
 
     private String confirmpassword;
+
+   
 
     public String getEmail() {
         return email;

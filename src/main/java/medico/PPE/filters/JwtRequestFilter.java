@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import medico.PPE.Repositories.DoctorateRepository;
+import medico.PPE.Services.DocteurService;
 import medico.PPE.jwt.CustomerServiceImpl;
 import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +22,17 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final CustomerServiceImpl customerService;
+    private final DoctorateRepository doctorateRepository;
+    private final  DocteurService docteurService;
+
+
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public JwtRequestFilter(CustomerServiceImpl customerService, JwtUtil jwtUtil) {
+    public JwtRequestFilter(CustomerServiceImpl customerService, DoctorateRepository doctorateRepository, DocteurService docteurService, JwtUtil jwtUtil) {
         this.customerService = customerService;
+        this.doctorateRepository = doctorateRepository;
+        this.docteurService = docteurService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -47,6 +55,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // Si le username est présent et qu'aucune authentification n'est encore établie
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customerService.loadUserByUsername(username);
+
+            // : chercher d'abord parmi les customers
+             if (doctorateRepository.existsByEmail(username)) {
+                userDetails = docteurService.loadUserByUsername(username);
+            }
+
 
             // Vérifier si le token est valide
             if (userDetails != null && jwtUtil.validateToken(token, userDetails)) {

@@ -13,7 +13,7 @@ public class ExeceptionMessage {
 
     // billing  type message
 
-    public static String Billing_TYPE_UPDATE_FAILED = "ERROR: echec de modification des information d'un  type de billing ";
+    public static String Docteur = "ERROR: D'ajout d'un utilisateur ";
     public static String Billing_TYPE_SAVE_FAILED = "ERROR: echec d'enregistrement d'un type billing";
     public static String Billing_TYPE_UPDATE_FAILED_BY_ID = "ERROR: echec de modification des information de Billing du a l'abscence de l'id";
 
@@ -23,5 +23,6 @@ public class ExeceptionMessage {
 
 
     public static String Connexion_FAILED = "connexion echouer ";
+
 
 }

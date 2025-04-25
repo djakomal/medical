@@ -2,14 +2,16 @@ package medico.PPE.Models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-
+@Data
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 public class Creneau {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
+    private Long Id;
     private String jour;
     private String heureDebut;
     private String heureFin;

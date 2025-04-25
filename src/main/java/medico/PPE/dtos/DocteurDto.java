@@ -37,6 +37,119 @@ public class DocteurDto {
     private String cvurl;
     @Column(name = "password")
     private String password;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getHollyDays() {
+        return HollyDays;
+    }
+
+    public void setHollyDays(String hollyDays) {
+        HollyDays = hollyDays;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTel() {
+        return Tel;
+    }
+
+    public void setTel(String tel) {
+        Tel = tel;
+    }
+
+    public String getProfessionalAddress() {
+        return professionalAddress;
+    }
+
+    public void setProfessionalAddress(String professionalAddress) {
+        this.professionalAddress = professionalAddress;
+    }
+
+    public String getLicence() {
+        return Licence;
+    }
+
+    public void setLicence(String licence) {
+        Licence = licence;
+    }
+
+    public AppointmentTypeEnum getSpecialite() {
+        return specialite;
+    }
+
+    public void setSpecialite(AppointmentTypeEnum specialite) {
+        this.specialite = specialite;
+    }
+
+    public String getNumeroLicence() {
+        return numeroLicence;
+    }
+
+    public void setNumeroLicence(String numeroLicence) {
+        this.numeroLicence = numeroLicence;
+    }
+
+    public String getAnneesExperience() {
+        return anneesExperience;
+    }
+
+    public void setAnneesExperience(String anneesExperience) {
+        this.anneesExperience = anneesExperience;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public List<Creneau> getCreneau() {
+        return creneau;
+    }
+
+    public void setCreneau(List<Creneau> creneau) {
+        this.creneau = creneau;
+    }
+
+    public String getCvurl() {
+        return cvurl;
+    }
+
+    public void setCvurl(String cvurl) {
+        this.cvurl = cvurl;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getConfirmpassword() {
+        return confirmpassword;
+    }
+
+    public void setConfirmpassword(String confirmpassword) {
+        this.confirmpassword = confirmpassword;
+    }
+
     @Column(name = "confirmpassword")
     private String confirmpassword;
 }

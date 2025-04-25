@@ -2,14 +2,15 @@ package medico.PPE.Models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import medico.PPE.Enums.AppointmentTypeEnum;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
 
-
-@Entity(name="Docteur")
+@Data
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -17,11 +18,12 @@ public class Docteur {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column(name = "name")
     private String name;
     @Column(name = "HollyDays")
     private String HollyDays;
-    @Column(unique=true,nullable =false)
+    @Column(unique=true)
     private String email;
     @Column(name = "Tel")
     private String Tel;

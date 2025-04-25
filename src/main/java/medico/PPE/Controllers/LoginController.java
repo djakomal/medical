@@ -20,11 +20,8 @@ import java.io.IOException;
 @RequestMapping("/login")
 @CrossOrigin(origins = "http://localhost:5173")
 public class LoginController {
-
     private final AuthenticationManager authenticationManager;
-
     private final CustomerServiceImpl customerService;
-
     private final JwtUtil jwtUtil;
 
 
@@ -45,10 +42,19 @@ public class LoginController {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer is not activated");
             return null;
         }
+
         final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getEmail());
+
+
+
+        // Générer un JWT avec le rôle de l'utilisateur
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
 
+        // Retourner le token JWT et le rôle
         return new LoginResponse(jwt);
     }
+
+
+    // Méthode pour obtenir le rôle de l'utilisateur (ici, basé sur votre implémentation)
 
 }

@@ -2,26 +2,25 @@ package medico.PPE.Services;
 
 import medico.PPE.Models.Creneau;
 import medico.PPE.Models.Docteur;
-import medico.PPE.Repositories.DocteurRepository;
+import medico.PPE.Repositories.DoctorateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class DocteurServiceImpl implements DocteurService{
+public class DoctorateServiceImpl implements DocteurService{
     @Autowired
-    private  DocteurRepository docteurRepository;
-    @Autowired
-    public DocteurService docteurService;
-    @Override
+    private DoctorateRepository doctorateRepository;
+
+   /* @Override
     public Docteur add(Docteur docteur){
-        if(docteurRepository.existsByEmail(docteur.getEmail())){
-            throw new IllegalArgumentException("un compet existe deja vec cet email");
+        if(doctorateRepository.existsByEmail(docteur.getEmail())){
+            throw new IllegalArgumentException("un compet existe deja avec cet email");
         }
         List<Creneau> creneau =docteur.getCreneau();
         if(creneau!=null &&!creneau.isEmpty()){
@@ -43,18 +42,30 @@ public class DocteurServiceImpl implements DocteurService{
                 c.setDocteur(docteur);
             }
         }
-                return docteurRepository.save(docteur);
-    }
+                return doctorateRepository.save(docteur);
+    }*/
     @Override
     public List<Docteur>getAllDocteur(){
-        return docteurRepository.findAll();
+        return doctorateRepository.findAll();
     }
     @Override
     public Optional<Docteur> getById(long Id){
-        return docteurRepository.findById(Id);
+        return doctorateRepository.findById(Id);
     }
     @Override
     public void deleteDocteur(Long Id){
-        docteurRepository.deleteById(Id);
+        doctorateRepository.deleteById(Id);
     }
+
+
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // Write logic to fetch doctor from DB
+        Docteur docteur = (Docteur) doctorateRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("docteur not found with email: " + email));
+
+        return new User(docteur.getEmail(), docteur.getPassword(), Collections.emptyList());
+    }
+
 }
