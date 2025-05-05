@@ -1,12 +1,13 @@
 package medico.PPE.dtos;
 
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginRequest {
-
+    @Email
     private String email;
 
     private String password;

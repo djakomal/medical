@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.Services.DocteurService;
+import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.jwt.CustomerServiceImpl;
 import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,19 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final CustomerServiceImpl customerService;
-    private final DoctorateRepository doctorateRepository;
-    private final  DocteurService docteurService;
+
+    private final DoctorateServiceImpl docteurServiceImpl;
 
 
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public JwtRequestFilter(CustomerServiceImpl customerService, DoctorateRepository doctorateRepository, DocteurService docteurService, JwtUtil jwtUtil) {
+    public JwtRequestFilter(CustomerServiceImpl customerService, DoctorateServiceImpl docteurServiceImpl, JwtUtil jwtUtil) {
         this.customerService = customerService;
-        this.doctorateRepository = doctorateRepository;
-        this.docteurService = docteurService;
+        this.docteurServiceImpl = docteurServiceImpl;
+
+
+
         this.jwtUtil = jwtUtil;
     }
 
@@ -54,12 +57,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // Si le username est présent et qu'aucune authentification n'est encore établie
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = customerService.loadUserByUsername(username);
+           UserDetails userDetails = customerService.loadUserByUsername(username);
+            UserDetails docteurDetails = docteurServiceImpl.loadUserByUsername(username);
 
             // : chercher d'abord parmi les customers
-             if (doctorateRepository.existsByEmail(username)) {
-                userDetails = docteurService.loadUserByUsername(username);
-            }
 
 
             // Vérifier si le token est valide
@@ -70,7 +71,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                 // Ajouter l'authentification au contexte de sécurité
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            } else {
+            }
+              if(docteurDetails != null && jwtUtil.validateToken(token, docteurDetails)){
+                 UsernamePasswordAuthenticationToken authenticationToken =
+                         new UsernamePasswordAuthenticationToken(docteurDetails, null, docteurDetails.getAuthorities());
+                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                 // Ajouter l'authentification au contexte de sécurité
+                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+             }
+            else {
                 // Si le token est invalide ou expiré, envoyer une erreur 401
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
                 return;

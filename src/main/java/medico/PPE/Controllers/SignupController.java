@@ -5,8 +5,7 @@ import medico.PPE.Models.Customer;
 
 import medico.PPE.Models.Docteur;
 import medico.PPE.Services.AuthService;
-import medico.PPE.Services.DocteurService;
-import medico.PPE.dtos.DocteurDto;
+import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.dtos.DocteurResponse;
 import medico.PPE.dtos.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +22,12 @@ import java.util.Optional;
 public class SignupController {
 
     private final AuthService authService;
-    private final DocteurService docteurService;
+
 
     @Autowired
-    public SignupController(AuthService authService, DocteurService docteurService) {
+    public SignupController(AuthService authService) {
         this.authService = authService;
-        this.docteurService = docteurService;
+
     }
 
     @PostMapping
@@ -60,10 +59,10 @@ public class SignupController {
 
 
     @PostMapping("/docteur/add")
-    public ResponseEntity<?> addDocteur(@RequestBody DocteurDto docteurDto) {
+    public ResponseEntity<?> addDocteur(@RequestBody Docteur docteur) {
         try {
             // Appeler le service pour créer un Docteur et obtenir le DocteurResponse
-            DocteurResponse createdDocteurResponse = authService.createDocteur(docteurDto);
+            DocteurResponse createdDocteurResponse = authService.createDocteur(docteur);
 
             // Vérifier si la création a réussi
             return ResponseEntity.status(HttpStatus.CREATED).body(createdDocteurResponse);
@@ -75,14 +74,11 @@ public class SignupController {
 
     @GetMapping("/all")
     public List<Docteur> getAllDocteur(){
-        return docteurService.getAllDocteur();
+        return authService.getAllDocteur();
     }
-    @GetMapping("/get/docteur/{id}")
-    public Optional<Docteur> getDocteurById(@PathVariable Long id){
-        return docteurService.getById(id);
-    }
+
     @DeleteMapping("/docteur/{id}")
     public void deleteDocteur(@PathVariable Long id){
-        docteurService.deleteDocteur(id);
+        authService.deleteDocteur(id);
     }
 }

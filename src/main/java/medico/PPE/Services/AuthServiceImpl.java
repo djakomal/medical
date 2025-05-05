@@ -4,7 +4,6 @@ import medico.PPE.Models.Customer;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.CustomerRepository;
 import medico.PPE.Repositories.DoctorateRepository;
-import medico.PPE.dtos.DocteurDto;
 import medico.PPE.dtos.DocteurResponse;
 import medico.PPE.dtos.SignupRequest;
 import medico.PPE.utils.JwtUtil;
@@ -69,17 +68,17 @@ public class AuthServiceImpl implements AuthService {
     //
 
     @Override
-    public DocteurResponse createDocteur(DocteurDto docteurDto) {
+    public DocteurResponse createDocteur(Docteur docteur) {
         // Vérifier si le docteur existe déjà
-        if (doctorateRepository.existsByEmail(docteurDto.getEmail())) {
+        if (doctorateRepository.existsByEmail(docteur.getEmail())) {
             throw new RuntimeException("email existe deja");
         }
 
-        Docteur docteur = new Docteur();
-        BeanUtils.copyProperties(docteurDto, docteur);
+        Docteur docteurs = new Docteur();
+        BeanUtils.copyProperties(docteur, docteurs);
 
         // Hasher le mot de passe avant de l'enregistrer
-        String hashPassword = passwordEncoder.encode(docteurDto.getPassword());
+        String hashPassword = passwordEncoder.encode(docteur.getPassword());
         docteur.setPassword(hashPassword);
 
         // Sauvegarder le docteur dans la base de données

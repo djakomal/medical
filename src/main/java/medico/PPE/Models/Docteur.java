@@ -16,148 +16,48 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class Docteur {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "name")
-    private String name;
-    @Column(name = "HollyDays")
-    private String HollyDays;
-    @Column(unique=true)
-    private String email;
-    @Column(name = "Tel")
-    private String Tel;
-    @Column(name = "professionalAddress")
-    private String professionalAddress;
-    @Column(name = "Licence")
-    private String Licence;
-    @Enumerated(EnumType.STRING)
-    private AppointmentTypeEnum specialite;
-    @Column(name = "numeroLicence")
-    private String numeroLicence;
-    @Column(name = "anneesExperience")
-    private String anneesExperience;
-    @Column(name = "photoUrl")
-    private String photoUrl;
-    @OneToMany(mappedBy ="docteur" ,cascade=CascadeType.ALL,orphanRemoval=true)
-    private List<Creneau> creneau;
-    @Column(name = "cvurl")
-    private String cvurl;
-    @Column(name = "password")
-    private String password;
-    @Column(name = "confirmpassword")
-    private String confirmpassword;
-    // il va falloire mettre la specialité afin qu'elle soit disponible lors du rendez-vous
 
-    public String getName() {
-        return name;
-    }
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+        private String name;
 
-    public String getHollyDays() {
-        return HollyDays;
-    }
+        @Column(name = "holly_days")  // Utilisez le style snake_case pour SQL
+        private String hollyDays;
 
-    public void setHollyDays(String hollyDays) {
-        HollyDays = hollyDays;
-    }
+        @Column(unique = true, nullable = false)  // Garantit l'unicité et la non-nullité
+        private String email;
 
-    public String getEmail() {
-        return email;
-    }
+        private String tel;
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+        @Column(name = "professional_address")
+        private String professionalAddress;
 
-    public String getTel() {
-        return Tel;
-    }
+        private String licence;
 
-    public void setTel(String tel) {
-        Tel = tel;
-    }
+        @Enumerated(EnumType.STRING)
+        private AppointmentTypeEnum specialite;
 
-    public String getProfessionalAddress() {
-        return professionalAddress;
-    }
+        @Column(name = "numero_licence")
+        private String numeroLicence;
 
-    public void setProfessionalAddress(String professionalAddress) {
-        this.professionalAddress = professionalAddress;
-    }
+        @Column(name = "annees_experience")
+        private String anneesExperience;
 
-    public String getLicence() {
-        return Licence;
-    }
+        @Column(name = "photo_url")
+        private String photoUrl;
 
-    public void setLicence(String licence) {
-        Licence = licence;
-    }
+        @OneToMany(mappedBy = "docteur", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<Creneau> creneau;
 
-    public AppointmentTypeEnum getSpecialite() {
-        return specialite;
-    }
+        @Column(name = "cvurl")
+        private String cvurl;
 
-    public void setSpecialite(AppointmentTypeEnum specialite) {
-        this.specialite = specialite;
-    }
+        @Column(nullable = false)
+        private String password;
 
-    public String getNumeroLicence() {
-        return numeroLicence;
-    }
+        @Transient  // Ne pas persister cette propriété
+        private String confirmpassword;
 
-    public void setNumeroLicence(String numeroLicence) {
-        this.numeroLicence = numeroLicence;
-    }
-
-    public String getAnneesExperience() {
-        return anneesExperience;
-    }
-
-    public void setAnneesExperience(String anneesExperience) {
-        this.anneesExperience = anneesExperience;
-    }
-
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
-    public List<Creneau> getCreneau() {
-        return creneau;
-    }
-
-    public void setCreneau(List<Creneau> creneau) {
-        this.creneau = creneau;
-    }
-
-    public String getCvurl() {
-        return cvurl;
-    }
-
-    public void setCvurl(String cvurl) {
-        this.cvurl = cvurl;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getConfirmpassword() {
-        return confirmpassword;
-    }
-
-    public void setConfirmpassword(String confirmpassword) {
-        this.confirmpassword = confirmpassword;
-    }
 }

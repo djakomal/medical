@@ -6,6 +6,7 @@ import medico.PPE.Repositories.DoctorateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class DoctorateServiceImpl implements DocteurService{
+public class DoctorateServiceImpl implements UserDetailsService {
     @Autowired
     private DoctorateRepository doctorateRepository;
 
@@ -44,7 +45,7 @@ public class DoctorateServiceImpl implements DocteurService{
         }
                 return doctorateRepository.save(docteur);
     }*/
-    @Override
+/*    @Override
     public List<Docteur>getAllDocteur(){
         return doctorateRepository.findAll();
     }
@@ -55,17 +56,29 @@ public class DoctorateServiceImpl implements DocteurService{
     @Override
     public void deleteDocteur(Long Id){
         doctorateRepository.deleteById(Id);
-    }
+    }*/
 
 
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Write logic to fetch doctor from DB
-        Docteur docteur = (Docteur) doctorateRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("docteur not found with email: " + email));
+        // Si l'email contient "00" mais pas "@", essayez de le corriger
+        if (email.contains("00") && !email.contains("@")) {
+            String correctedEmail = email.replace("00", "@");
+            System.out.println("Email corrigé: " + correctedEmail);
 
-        return new User(docteur.getEmail(), docteur.getPassword(), Collections.emptyList());
+            try {
+                Docteur d = (Docteur) doctorateRepository.findByEmail(correctedEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException("Docteur non trouvé: " + correctedEmail));
+                return new User(d.getEmail(), d.getPassword(), new ArrayList<>());
+            } catch (UsernameNotFoundException e) {
+                // Si l'email corrigé ne fonctionne pas, continuez avec l'email original
+            }
+        }
+
+        Docteur d = doctorateRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Docteur non trouvé: " + email));
+
+        return new User(d.getEmail(), d.getPassword(), new ArrayList<>());
     }
-
 }

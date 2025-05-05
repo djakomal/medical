@@ -1,10 +1,9 @@
 package medico.PPE.Controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
-import medico.PPE.Services.DocteurService;
+import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.dtos.LoginRequest;
 import medico.PPE.dtos.LoginResponse;
-import medico.PPE.jwt.CustomerServiceImpl;
 import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,36 +23,40 @@ import java.io.IOException;
 public class DocteurController {
 
     private final AuthenticationManager authenticationManager;
-    private final  DocteurService docteurService;;
+    private final DoctorateServiceImpl docteurService;;
     private final JwtUtil jwtUtil;
 
 
     @Autowired
-    public DocteurController( AuthenticationManager authenticationManager1, DocteurService docteurService, JwtUtil jwtUtil1) {
-        this.authenticationManager = authenticationManager1;
+    public DocteurController(AuthenticationManager authenticationManager, DoctorateServiceImpl docteurService, JwtUtil jwtUtil1) {
+        this.authenticationManager = authenticationManager;
         this.docteurService = docteurService;
+
         this.jwtUtil = jwtUtil1;
     }
 
-    @PostMapping
+    @PostMapping("login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
+        // Corriger l'email avant de l'utiliser
+        String originalEmail = loginRequest.getEmail();
+        if (originalEmail.contains("00") && !originalEmail.contains("@")) {
+            String correctedEmail = originalEmail.replace("00", "@");
+            loginRequest.setEmail(correctedEmail);
+            System.out.println("Email corrigé dans le contrôleur: " + correctedEmail);
+        }
+
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginRequest.getEmail(), loginRequest.getPassword()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Incorrect email or password.");
         } catch (DisabledException disabledException) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer is not activated");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "docteur is not activated");
             return null;
         }
 
         final UserDetails userDetails = docteurService.loadUserByUsername(loginRequest.getEmail());
-
-
-
-        // Générer un JWT avec le rôle de l'utilisateur
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
-
-        // Retourner le token JWT et le rôle
         return new LoginResponse(jwt);
     }
 

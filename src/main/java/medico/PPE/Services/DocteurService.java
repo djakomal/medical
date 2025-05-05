@@ -10,14 +10,4 @@ import java.util.Optional;
 
 public interface DocteurService {
     //Docteur add(Docteur docteur);
-
-    List<Docteur> getAllDocteur();
-
-    Optional<Docteur> getById(long Id);
-
-    void deleteDocteur(Long Id);
-
-
-
-    UserDetails loadUserByUsername(String email) throws UsernameNotFoundException;
 }

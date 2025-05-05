@@ -22,7 +22,9 @@ public interface AuthService {
     Customer getCustomerById(Long id);
 
 
-    DocteurResponse createDocteur(DocteurDto docteurDto);
+
+
+    DocteurResponse createDocteur(Docteur docteur);
 
     List<Docteur> getAllDocteur();
 

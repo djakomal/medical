@@ -15,7 +15,7 @@ public class DocteurDto {
     private String name;
     @Column(name = "HollyDays")
     private String HollyDays;
-    @Column(unique=true,nullable =false)
+    @Column(name="email")
     private String email;
     @Column(name = "Tel")
     private String Tel;
