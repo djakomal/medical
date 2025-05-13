@@ -68,7 +68,7 @@ public class DoctorateServiceImpl implements UserDetailsService {
             System.out.println("Email corrigé: " + correctedEmail);
 
             try {
-                Docteur d = (Docteur) doctorateRepository.findByEmail(correctedEmail)
+                Docteur d = doctorateRepository.findByEmail(correctedEmail)
                         .orElseThrow(() -> new UsernameNotFoundException("Docteur non trouvé: " + correctedEmail));
                 return new User(d.getEmail(), d.getPassword(), new ArrayList<>());
             } catch (UsernameNotFoundException e) {

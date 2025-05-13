@@ -32,7 +32,7 @@ public class LoginController {
         this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping
+    @PostMapping("login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));

@@ -2,8 +2,11 @@ package medico.PPE.configuration;
 
 
 import medico.PPE.Services.DoctorateServiceImpl;
-import medico.PPE.filters.EmailFixingFilter;
-import medico.PPE.filters.JwtRequestFilter;
+import medico.PPE.Services.UnifiedUserDetailsService;
+import medico.PPE.filters.CustomerJwtRequestFilter;
+import medico.PPE.filters.DocteurJwtRequestFilter;
+
+import medico.PPE.jwt.CustomerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,15 +28,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class WebSecurityConfiguration {
 
-    private  final DoctorateServiceImpl docteurService;
-    @Autowired
-    private EmailFixingFilter emailFixingFilter;
-    private final JwtRequestFilter jwtRequestFilter;
+
+    private final UnifiedUserDetailsService unifiedUserDetailsService;
+
+    private final CustomerJwtRequestFilter customerFilter;
+    private final DocteurJwtRequestFilter docteurFilter;
 
     @Autowired
-    public WebSecurityConfiguration(DoctorateServiceImpl docteurService, JwtRequestFilter jwtRequestFilter) {
-        this.docteurService = docteurService;
-        this.jwtRequestFilter = jwtRequestFilter;
+    public WebSecurityConfiguration(DoctorateServiceImpl docteurService,
+                                    CustomerServiceImpl customerservice, UnifiedUserDetailsService unifiedUserDetailsService, CustomerJwtRequestFilter customerFilter, DocteurJwtRequestFilter docteurFilter) {
+        this.unifiedUserDetailsService = unifiedUserDetailsService;
+        this.customerFilter = customerFilter;
+
+        this.docteurFilter = docteurFilter;
     }
 
 
@@ -50,8 +57,9 @@ public class WebSecurityConfiguration {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(emailFixingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(customerFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(docteurFilter, CustomerJwtRequestFilter.class)
+
                 .build();
     }
 
@@ -64,7 +72,7 @@ public class WebSecurityConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(docteurService)
+                .userDetailsService(unifiedUserDetailsService)
                 .passwordEncoder(passwordEncoder())
                 .and()
                 .build();

@@ -12,11 +12,31 @@ public class SignupRequest {
 
     private String email;
 
-    private String name;
+    private String username;
 
     private String password;
 
     private String confirmpassword;
+    private String Gender;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getGender() {
+        return Gender;
+    }
+
+    public void setGender(String gender) {
+        Gender = gender;
+    }
+
+
+
 
    
 
@@ -28,13 +48,7 @@ public class SignupRequest {
         this.email = email;
     }
 
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getPassword() {
         return password;
