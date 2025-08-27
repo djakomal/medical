@@ -1,13 +1,8 @@
 import { Component, Injectable, NgModule } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-
 import { HttpClientModule } from '@angular/common/http';
-
-
 // import { RegisteDetComponent } from './admin/main/registe-det/registe-det.component';
-
 // import { NotificationComponent } from './admin/notification/notification.component';
-
 import { CommonModule } from '@angular/common';
 import { NoteConfirmationComponent } from './components/note-confirmation/note-confirmation.component';
 import { ConnexionComponent } from './components/connexion/connexion.component';
