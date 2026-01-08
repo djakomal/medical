@@ -21,7 +21,7 @@ public class Appointment {
 	
 	@Column(name = "date")
 	private String date;
-	
+	 
 	@Column(name = "time")
 	private String time;
 
@@ -30,71 +30,48 @@ public class Appointment {
 	
 	@Column(name = "description")
 	private String description;
-
+	 
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="docteur_id",nullable=false)
+	private Docteur doctor;
 	
 	@Column(name = "regtime")
 	@Transient
 	private String regtime;
-
-	
-
 	public String getRegtime() {
 		return regtime;
 	}
-
-
 	public void setRegtime(String regtime) {
 		this.regtime = regtime;
 	}
-
-
-
-
-
 	public void setId(long id) {
 		this.id = id;
 	}
-
-
 	public String getName() {
 		return name;
 	}
-
-
 	public void setName(String name) {
 		this.name = name;
 	}
-
-
 	public String getEmail() {
 		return email;
 	}
-
-
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
-
 	public String getDate() {
 		return date;
-	}
-
-
-	public void setDate(String date) {
+	}	public void setDate(String date) {
 		this.date = date;
 	}
-
 
 	public String getTime() {
 		return time;
 	}
 
-
 	public void setTime(String time) {
 		this.time = time;
 	}
-
 
 	public String getDescription() {
 		return description;
@@ -104,20 +81,20 @@ public class Appointment {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
+	public  Long getId() {
+		return id;
+	} 
+	public void setDoctor(Docteur doctor){
+		this.doctor=doctor;
+	}
+	public 	Docteur getDoctor(){
+		return doctor;
+	}
 
 	@Override
 	public String toString() {
 		return "Appointment [id=" + id + ", name=" + name + ", email=" + email + ", date=" + date + ", time=" + time
 				+ ", description=" + description + "]";
-	}
-
-
-
-
-	public  Long getId() {
-		return id;
-	}
-
+				}
 
 }

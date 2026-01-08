@@ -1,5 +1,7 @@
 package medico.PPE.Models;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +17,9 @@ public class Creneau {
     private String jour;
     private String heureDebut;
     private String heureFin;
+    private LocalDate date;
+    private Boolean disponible;
+
     @ManyToOne
     @JoinColumn(name="docteur_id")
     private Docteur docteur;
@@ -49,5 +54,20 @@ public class Creneau {
 
     public void setDocteur(Docteur docteur) {
         this.docteur = docteur;
+    }
+
+    public void setDate(LocalDate date){
+        this.date= date;
+    }
+    public LocalDate getDate(){
+        return date;
+    }
+
+    public void setDisponible(Boolean disponible){
+        this.disponible= disponible;
+    }
+
+    public boolean getDisponible(){
+        return disponible;
     }
 }

@@ -15,4 +15,16 @@ public interface AppService {
    // AppointmentDto update(Long Id, AppointmentDto appointment) throws Exception;
 
     Appointment getAppById(Long id);
+    
+    Appointment validateAppointment(Long id) throws Exception;
+
+    Appointment rejectAppointment(Long id) throws Exception;
+
+    Appointment startAppointment(Long id) throws Exception;
+
+    void delete(Long id);
+
+    List<Appointment> getAppointmentByDoctor(Long doctorId);
+    
+    List<Appointment> getAppointmentByEmail(String email);
 }

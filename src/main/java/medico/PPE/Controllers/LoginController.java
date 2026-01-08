@@ -35,7 +35,7 @@ public class LoginController {
     @PostMapping("login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Incorrect email or password.");
         } catch (DisabledException disabledException) {
@@ -43,7 +43,7 @@ public class LoginController {
             return null;
         }
 
-        final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getEmail());
+        final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getUsername());
 
 
 

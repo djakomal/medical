@@ -38,16 +38,16 @@ public class DocteurController {
     @PostMapping("login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
         // Corriger l'email avant de l'utiliser
-        String originalEmail = loginRequest.getEmail();
+        String originalEmail = loginRequest.getUsername();
         if (originalEmail.contains("00") && !originalEmail.contains("@")) {
             String correctedEmail = originalEmail.replace("00", "@");
-            loginRequest.setEmail(correctedEmail);
+            loginRequest.setUsername(correctedEmail);
             System.out.println("Email corrigé dans le contrôleur: " + correctedEmail);
         }
 
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    loginRequest.getEmail(), loginRequest.getPassword()));
+                    loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Incorrect email or password.");
         } catch (DisabledException disabledException) {
@@ -55,7 +55,7 @@ public class DocteurController {
             return null;
         }
 
-        final UserDetails userDetails = docteurService.loadUserByUsername(loginRequest.getEmail());
+        final UserDetails userDetails = docteurService.loadUserByUsername(loginRequest.getUsername ());
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
         return new LoginResponse(jwt);
     }

@@ -11,4 +11,6 @@ public interface DoctorateRepository extends JpaRepository<Docteur, Long> {
     boolean existsByEmail(String email);
 
     Optional<Docteur> findByEmail(String email);
+
+    Optional<Docteur> findByUsername(String username);
 }

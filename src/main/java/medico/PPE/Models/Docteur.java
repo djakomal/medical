@@ -7,11 +7,14 @@ import lombok.NoArgsConstructor;
 import medico.PPE.Enums.AppointmentTypeEnum;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
 @Data
 @Entity
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Docteur {
@@ -30,6 +33,7 @@ public class Docteur {
         private String email;
 
         private String tel;
+         private String username;
 
         @Column(name = "professional_address")
         private String professionalAddress;
