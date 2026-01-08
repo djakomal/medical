@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import medico.PPE.Services.DoctorateServiceImpl;
+import medico.PPE.Services.UserDetailsServiceImpl;
 import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -23,11 +24,13 @@ import java.io.IOException;
 public class DocteurJwtRequestFilter extends BaseJwtRequestFilter  {
 
     private final DoctorateServiceImpl docteurService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    public DocteurJwtRequestFilter(DoctorateServiceImpl docteurService, JwtUtil jwtUtil) {
+    public DocteurJwtRequestFilter(DoctorateServiceImpl docteurService, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
         super(jwtUtil);
         this.docteurService = docteurService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -37,7 +40,7 @@ public class DocteurJwtRequestFilter extends BaseJwtRequestFilter  {
         // Ne traiter que si l'authentification n'est pas déjà établie
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                UserDetails userDetails = docteurService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 // Vérifier si le token est valide
                 if (jwtUtil.validateToken(token, userDetails)) {

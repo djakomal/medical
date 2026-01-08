@@ -1,60 +1,95 @@
 package medico.PPE.Controllers;
 
-
 import jakarta.servlet.http.HttpServletResponse;
+import medico.PPE.Services.UserDetailsServiceImpl;
 import medico.PPE.dtos.LoginRequest;
 import medico.PPE.dtos.LoginResponse;
-import medico.PPE.jwt.CustomerServiceImpl;
 import medico.PPE.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/login")
 @CrossOrigin(origins = "http://localhost:5173")
 public class LoginController {
+    
     private final AuthenticationManager authenticationManager;
-    private final CustomerServiceImpl customerService;
+    private final UserDetailsServiceImpl userDetailsService;
     private final JwtUtil jwtUtil;
 
-
     @Autowired
-    public LoginController(AuthenticationManager authenticationManager, CustomerServiceImpl customerService, JwtUtil jwtUtil) {
+    public LoginController(AuthenticationManager authenticationManager, 
+                          UserDetailsServiceImpl userDetailsService, 
+                          JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
-        this.customerService = customerService;
+        this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping("login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            // ✅ Normaliser le username
+            String normalizedUsername = loginRequest.getUsername().trim().toLowerCase();
+            
+            // ✅ Authentifier avec Spring Security
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(normalizedUsername, loginRequest.getPassword())
+            );
+            
+            // ✅ Charger les détails de l'utilisateur
+            UserDetails userDetails = userDetailsService.loadUserByUsername(normalizedUsername);
+            
+            // ✅ Générer le token JWT
+            String jwt = jwtUtil.generateToken(userDetails.getUsername());
+            
+            // ✅ Retourner le token
+            return ResponseEntity.ok(new LoginResponse(jwt));
+            
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Nom d'utilisateur incorrect"));
+                
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Incorrect email or password.");
-        } catch (DisabledException disabledException) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer is not activated");
-            return null;
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Mot de passe incorrect"));
+                
+        } catch (DisabledException e) {
+            return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("Compte désactivé"));
+                
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Erreur lors de la connexion"));
         }
-
-        final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getUsername());
-
-
-
-        // Générer un JWT avec le rôle de l'utilisateur
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
-
-        // Retourner le token JWT et le rôle
-        return new LoginResponse(jwt);
     }
-
-
-    // Méthode pour obtenir le rôle de l'utilisateur (ici, basé sur votre implémentation)
-
+    
+    // DTO pour les erreurs
+    private static class ErrorResponse {
+        private String error;
+        
+        public ErrorResponse(String error) {
+            this.error = error;
+        }
+        
+        public String getError() {
+            return error;
+        }
+        
+        public void setError(String error) {
+            this.error = error;
+        }
+    }
 }

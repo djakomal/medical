@@ -127,4 +127,12 @@ public class ConseilController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/docteur/{docteurId}")
+public ResponseEntity<List<ConseilDto>> getConseilsByDocteur(
+        @PathVariable Long docteurId) {
+
+    List<ConseilDto> conseils = conseilService.getConseilsByDocteur(docteurId);
+    return ResponseEntity.ok(conseils);
+}
 }

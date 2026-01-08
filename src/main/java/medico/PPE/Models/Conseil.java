@@ -30,6 +30,10 @@ public class Conseil {
     @Column(nullable = false)
     private LocalDate datePublication;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "docteur_id", nullable = false)
+private Docteur docteur;
+ 
     @Column(nullable = true)
     private String imageUrl;
     

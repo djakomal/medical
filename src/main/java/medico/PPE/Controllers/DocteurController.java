@@ -2,6 +2,7 @@ package medico.PPE.Controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
 import medico.PPE.Services.DoctorateServiceImpl;
+import medico.PPE.Services.UserDetailsServiceImpl;
 import medico.PPE.dtos.LoginRequest;
 import medico.PPE.dtos.LoginResponse;
 import medico.PPE.utils.JwtUtil;
@@ -25,27 +26,22 @@ public class DocteurController {
     private final AuthenticationManager authenticationManager;
     private final DoctorateServiceImpl docteurService;;
     private final JwtUtil jwtUtil;
+    private final UserDetailsServiceImpl   userDetailsService;
 
 
     @Autowired
-    public DocteurController(AuthenticationManager authenticationManager, DoctorateServiceImpl docteurService, JwtUtil jwtUtil1) {
+    public DocteurController(AuthenticationManager authenticationManager, DoctorateServiceImpl docteurService, JwtUtil jwtUtil1, UserDetailsServiceImpl userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.docteurService = docteurService;
-
+        this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil1;
     }
 
     @PostMapping("login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
-        // Corriger l'email avant de l'utiliser
-        String originalEmail = loginRequest.getUsername();
-        if (originalEmail.contains("00") && !originalEmail.contains("@")) {
-            String correctedEmail = originalEmail.replace("00", "@");
-            loginRequest.setUsername(correctedEmail);
-            System.out.println("Email corrigé dans le contrôleur: " + correctedEmail);
-        }
-
-        try {
+        // utiliser le username corrigé si nécessaire
+        String username = loginRequest.getUsername();
+            try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (BadCredentialsException e) {
@@ -55,7 +51,7 @@ public class DocteurController {
             return null;
         }
 
-        final UserDetails userDetails = docteurService.loadUserByUsername(loginRequest.getUsername ());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
         return new LoginResponse(jwt);
     }

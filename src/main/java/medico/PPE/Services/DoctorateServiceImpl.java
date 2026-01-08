@@ -4,81 +4,179 @@ import medico.PPE.Models.Creneau;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.DoctorateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class DoctorateServiceImpl implements UserDetailsService {
+public class DoctorateServiceImpl {
+    
     @Autowired
     private DoctorateRepository doctorateRepository;
 
-   /* @Override
-    public Docteur add(Docteur docteur){
-        if(doctorateRepository.existsByEmail(docteur.getEmail())){
-            throw new IllegalArgumentException("un compet existe deja avec cet email");
-        }
-        List<Creneau> creneau =docteur.getCreneau();
-        if(creneau!=null &&!creneau.isEmpty()){
-            Set<String> uniqueCreneau= new HashSet<>();
-            // exception reguiliere pour valider le format "HH:mm"
-            Pattern timePattern= Pattern.compile("^([01]?\\d|2[0-3]):([0-5]\\d)$");
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
-            for(Creneau c :creneau){
-                //validation duu formation d'heure
-                if(!timePattern.matcher(c.getHeureDebut()).matches()||!timePattern.matcher(c.getHeureFin()).matches()){
-                    throw new IllegalArgumentException("Le forma d'heure est invalide" +c.getHeureDebut() +"-"+c.getHeureFin());
+    /**
+     * Ajouter un nouveau docteur avec validation des créneaux
+     */
+    public Docteur add(Docteur docteur) {
+        // ✅ Validation des champs obligatoires
+        if (docteur.getUsername() == null || docteur.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire");
+        }
+        if (docteur.getEmail() == null || docteur.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("L'email est obligatoire");
+        }
+
+        String normalizedUsername = docteur.getUsername().trim().toLowerCase();
+        String normalizedEmail = docteur.getEmail().trim().toLowerCase();
+
+        // ✅ Vérifier si le username existe déjà
+        if (userDetailsService.existsByUsername(normalizedUsername)) {
+            throw new IllegalArgumentException("Ce nom d'utilisateur est déjà pris");
+        }
+
+        // ✅ Vérifier si l'email existe déjà
+        if (userDetailsService.existsByEmail(normalizedEmail)) {
+            throw new IllegalArgumentException("Un compte existe déjà avec cet email");
+        }
+
+        // Normaliser les données
+        docteur.setUsername(normalizedUsername);
+        docteur.setEmail(normalizedEmail);
+
+        // ✅ Validation des créneaux
+        List<Creneau> creneaux = docteur.getCreneau();
+        if (creneaux != null && !creneaux.isEmpty()) {
+            Set<String> uniqueCreneaux = new HashSet<>();
+            // Expression régulière pour valider le format "HH:mm"
+            Pattern timePattern = Pattern.compile("^([01]?\\d|2[0-3]):([0-5]\\d)$");
+
+            for (Creneau c : creneaux) {
+                // Validation du format d'heure
+                if (!timePattern.matcher(c.getHeureDebut()).matches() || 
+                    !timePattern.matcher(c.getHeureFin()).matches()) {
+                    throw new IllegalArgumentException(
+                        "Le format d'heure est invalide: " + c.getHeureDebut() + " - " + c.getHeureFin()
+                    );
                 }
-                // Verification des doublons basé sur jour-heureDebu-heureFin
-                String key=c.getJour()+"-"+c.getHeureDebut()+"-"+c.getHeureFin();
-                if(!uniqueCreneau.add(key)){
-                    throw new IllegalArgumentException("Creneau en doublons trouvé:"+key);
+
+                // Vérification des doublons basés sur jour-heureDebut-heureFin
+                String key = c.getJour() + "-" + c.getHeureDebut() + "-" + c.getHeureFin();
+                if (!uniqueCreneaux.add(key)) {
+                    throw new IllegalArgumentException("Créneau en doublon trouvé: " + key);
                 }
-                // lister le creneau aux medecin
+
+                // Lier le créneau au docteur
                 c.setDocteur(docteur);
             }
         }
-                return doctorateRepository.save(docteur);
-    }*/
-/*    @Override
-    public List<Docteur>getAllDocteur(){
+
+        Docteur savedDocteur = doctorateRepository.save(docteur);
+        System.out.println("✅ Docteur créé: " + savedDocteur.getUsername());
+        return savedDocteur;
+    }
+
+    /**
+     * Récupérer tous les docteurs
+     */
+    public List<Docteur> getAllDocteur() {
         return doctorateRepository.findAll();
     }
-    @Override
-    public Optional<Docteur> getById(long Id){
-        return doctorateRepository.findById(Id);
+
+    /**
+     * Récupérer un docteur par ID
+     */
+    public Optional<Docteur> getById(Long id) {
+        return doctorateRepository.findById(id);
     }
-    @Override
-    public void deleteDocteur(Long Id){
-        doctorateRepository.deleteById(Id);
-    }*/
 
+    /**
+     * Récupérer un docteur par username
+     */
+    public Optional<Docteur> getByUsername(String username) {
+        String normalizedUsername = username.trim().toLowerCase();
+        return doctorateRepository.findByUsername(normalizedUsername);
+    }
 
+    /**
+     * Récupérer un docteur par email
+     */
+    public Optional<Docteur> getByEmail(String email) {
+        String normalizedEmail = email.trim().toLowerCase();
+        return doctorateRepository.findByEmail(normalizedEmail);
+    }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Si l'email contient "00" mais pas "@", essayez de le corriger
-        if (email.contains("00") && !email.contains("@")) {
-            String correctedEmail = email.replace("00", "@");
-            System.out.println("Email corrigé: " + correctedEmail);
+    /**
+     * Supprimer un docteur
+     */
+    public void deleteDocteur(Long id) {
+        doctorateRepository.deleteById(id);
+    }
 
-            try {
-                Docteur d = doctorateRepository.findByEmail(correctedEmail)
-                        .orElseThrow(() -> new UsernameNotFoundException("Docteur non trouvé: " + correctedEmail));
-                return new User(d.getEmail(), d.getPassword(), new ArrayList<>());
-            } catch (UsernameNotFoundException e) {
-                // Si l'email corrigé ne fonctionne pas, continuez avec l'email original
-            }
-        }
+    /**
+     * Mettre à jour un docteur
+    //  */
+    // public Docteur updateDocteur(Long id, Docteur docteurUpdate) {
+    //     Docteur existingDocteur = doctorateRepository.findById(id)
+    //         .orElseThrow(() -> new IllegalArgumentException("Docteur non trouvé avec l'ID: " + id));
 
-        Docteur d = doctorateRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Docteur non trouvé: " + email));
+    //     // Mettre à jour les champs si fournis
+    //     if (docteurUpdate.getNom() != null) {
+    //         existingDocteur.setNom(docteurUpdate.getNom());
+    //     }
+    //     if (docteurUpdate.getPrenom() != null) {
+    //         existingDocteur.setPrenom(docteurUpdate.getPrenom());
+    //     }
+    //     if (docteurUpdate.getSpecialite() != null) {
+    //         existingDocteur.setSpecialite(docteurUpdate.getSpecialite());
+    //     }
+    //     if (docteurUpdate.getEmail() != null) {
+    //         String normalizedEmail = docteurUpdate.getEmail().trim().toLowerCase();
+    //         // Vérifier si le nouvel email n'est pas déjà utilisé par un autre compte
+    //         if (!existingDocteur.getEmail().equals(normalizedEmail) && 
+    //             userDetailsService.existsByEmail(normalizedEmail)) {
+    //             throw new IllegalArgumentException("Cet email est déjà utilisé");
+    //         }
+    //         existingDocteur.setEmail(normalizedEmail);
+    //     }
+    //     if (docteurUpdate.getUsername() != null) {
+    //         String normalizedUsername = docteurUpdate.getUsername().trim().toLowerCase();
+    //         // Vérifier si le nouveau username n'est pas déjà utilisé
+    //         if (!existingDocteur.getUsername().equals(normalizedUsername) && 
+    //             userDetailsService.existsByUsername(normalizedUsername)) {
+    //             throw new IllegalArgumentException("Ce nom d'utilisateur est déjà pris");
+    //         }
+    //         existingDocteur.setUsername(normalizedUsername);
+    //     }
 
-        return new User(d.getEmail(), d.getPassword(), new ArrayList<>());
+    //     // Mettre à jour les créneaux si fournis
+    //     if (docteurUpdate.getCreneau() != null) {
+    //         existingDocteur.getCreneau().clear();
+    //         for (Creneau c : docteurUpdate.getCreneau()) {
+    //             c.setDocteur(existingDocteur);
+    //             existingDocteur.getCreneau().add(c);
+    //         }
+    //     }
+
+    //     return doctorateRepository.save(existingDocteur);
+    // }
+
+    /**
+     * Vérifier si un docteur existe par email
+     */
+    public boolean existsByEmail(String email) {
+        String normalizedEmail = email.trim().toLowerCase();
+        return doctorateRepository.existsByEmail(normalizedEmail);
+    }
+
+    /**
+     * Vérifier si un docteur existe par username
+     */
+    public boolean existsByUsername(String username) {
+        String normalizedUsername = username.trim().toLowerCase();
+        return doctorateRepository.existsByUsername(normalizedUsername);
     }
 }

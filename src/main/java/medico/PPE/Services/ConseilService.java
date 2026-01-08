@@ -121,6 +121,13 @@ public class ConseilService {
                 conseil.getNombreVues()
         );
     }
+
+    public List<ConseilDto> getConseilsByDocteur(Long docteurId) {
+        return conseilRepository.findByDocteurId(docteurId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
     
     // Conversion DTO -> Entity
     private Conseil convertToEntity(ConseilDto dto) {
@@ -137,4 +144,6 @@ public class ConseilService {
         conseil.setNombreVues(dto.getNombreVues() != null ? dto.getNombreVues() : 0);
         return conseil;
     }
+
+
 }

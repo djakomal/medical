@@ -16,10 +16,17 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 @Order(1)
 public class CustomerJwtRequestFilter extends BaseJwtRequestFilter {
+    
+    private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
+        "/login/login",
+        "/signup/client",
+        "/signup/docteur"
+    );
 
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -27,6 +34,21 @@ public class CustomerJwtRequestFilter extends BaseJwtRequestFilter {
     public CustomerJwtRequestFilter(UserDetailsServiceImpl userDetailsService, JwtUtil jwtUtil) {
         super(jwtUtil);
         this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        // ✅ IMPORTANT : Skip JWT validation pour les endpoints publics
+        String path = request.getRequestURI();
+        if (PUBLIC_ENDPOINTS.stream().anyMatch(path::endsWith)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // Appeler la méthode parent
+        super.doFilterInternal(request, response, filterChain);
     }
 
     @Override
@@ -47,33 +69,33 @@ public class CustomerJwtRequestFilter extends BaseJwtRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 
                 logger.info("✅ Authentification réussie pour: " + username);
+                
+                // ✅ CONTINUER UNIQUEMENT SI SUCCÈS
+                filterChain.doFilter(request, response);
             } else {
-                // ❌ Token invalide → BLOQUER
-                logger.warn("❌ Token invalide pour: " + username);
+                // ❌ Token invalide → BLOQUER ET NE PAS CONTINUER
+                logger.warn("⚠️ Token invalide pour: " + username);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
                 response.getWriter().write("{\"error\":\"Token JWT invalide ou expiré\"}");
-                return;
+                // NE PAS APPELER filterChain.doFilter() ICI !
             }
             
         } catch (UsernameNotFoundException e) {
-            // Utilisateur non trouvé
-            logger.warn("❌ Utilisateur non trouvé: " + username);
+            // ❌ Utilisateur non trouvé → BLOQUER ET NE PAS CONTINUER
+            logger.warn("⚠️ Utilisateur non trouvé: " + username);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Utilisateur non trouvé\"}");
-            return;
+            // NE PAS APPELER filterChain.doFilter() ICI !
             
         } catch (Exception e) {
-            // Erreur inattendue
+            // ❌ Erreur inattendue → BLOQUER ET NE PAS CONTINUER
             logger.error("🔥 Erreur lors de l'authentification: " + e.getMessage(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Erreur d'authentification\"}");
-            return;
+            // NE PAS APPELER filterChain.doFilter() ICI !
         }
-
-        // Continuer avec le filtre suivant
-        filterChain.doFilter(request, response);
     }
 }

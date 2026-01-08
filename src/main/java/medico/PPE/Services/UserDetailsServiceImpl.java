@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -30,48 +29,64 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String normalizedUsername = username.trim().toLowerCase();
         System.out.println("🔍 Recherche utilisateur: " + normalizedUsername);
 
-        // 1️⃣ Chercher parmi les customers
-        return customerRepository.findByUsername(normalizedUsername)
-            .map(customer -> {
-                System.out.println("✅ Customer trouvé: " + customer.getUsername() + " (email: " + customer.getEmail() + ")");
-                return new User(
-                    customer.getUsername(),
-                    customer.getPassword(),
-                    List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
-                );
-            })
-            // 2️⃣ Sinon chercher parmi les docteurs
-            .orElseGet(() -> doctorateRepository.findByUsername(normalizedUsername)
-                .map(docteur -> {
-                    System.out.println("✅ Docteur trouvé: " + docteur.getUsername() + " (email: " + docteur.getEmail() + ")");
-                    return new User(
-                        docteur.getUsername(),
-                        docteur.getPassword(),
-                        List.of(new SimpleGrantedAuthority("ROLE_DOCTEUR"))
-                    );
-                })
-                .orElseThrow(() -> {
-                    System.out.println("❌ Aucun utilisateur trouvé pour: " + normalizedUsername);
-                    return new UsernameNotFoundException(
-                        "Aucun utilisateur trouvé avec l'identifiant : " + username
-                    );
-                })
+        // 1 Chercher parmi les customers
+        var customer = customerRepository.findByUsername(normalizedUsername);
+        if (customer.isPresent()) {
+            System.out.println(" Customer trouvé: " + customer.get().getUsername());
+            return new User(
+                customer.get().getUsername(),
+                customer.get().getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
             );
+        }
+
+        // 2 Chercher parmi les docteurs
+        var docteur = doctorateRepository.findByUsername(normalizedUsername);
+        if (docteur.isPresent()) {
+            System.out.println(" Docteur trouvé: " + docteur.get().getUsername());
+            return new User(
+                docteur.get().getUsername(),
+                docteur.get().getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_DOCTEUR"))
+            );
+        }
+
+        // 3 Aucun utilisateur trouvé
+        System.out.println("❌ Aucun utilisateur trouvé pour: " + normalizedUsername);
+        throw new UsernameNotFoundException("Aucun utilisateur trouvé avec l'identifiant : " + username);
     }
 
     /**
-     * Vérifie si un username existe déjà
+     * Vérifie si un username existe déjà (Customer OU Docteur)
      */
     public boolean existsByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
         String normalizedUsername = username.trim().toLowerCase();
-        return customerRepository.findByUsername(normalizedUsername).isPresent() ||
-               doctorateRepository.findByUsername(normalizedUsername).isPresent();
+        return customerRepository.existsByUsername(normalizedUsername) ||
+               doctorateRepository.existsByUsername(normalizedUsername);
+    }
+
+    /**
+     * Vérifie si un email existe déjà (Customer OU Docteur)
+     */
+    public boolean existsByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        String normalizedEmail = email.trim().toLowerCase();
+        return customerRepository.existsByEmail(normalizedEmail) ||
+               doctorateRepository.existsByEmail(normalizedEmail);
     }
 
     /**
      * Détermine le type d'utilisateur
      */
     public String getUserType(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return null;
+        }
         String normalizedUsername = username.trim().toLowerCase();
         if (customerRepository.findByUsername(normalizedUsername).isPresent()) {
             return "CUSTOMER";

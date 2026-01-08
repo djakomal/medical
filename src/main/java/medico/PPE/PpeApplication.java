@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableAsync
-public class PpeApplication {
+public class PpeApplication { 
 	public static void main(String[] args) {
 
 		SpringApplication.run(PpeApplication.class, args);

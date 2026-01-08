@@ -23,4 +23,6 @@ public interface ConseilRepository extends JpaRepository<Conseil, Long> {
     List<Conseil> findByTagsContaining(String tag);
     
     List<Conseil> findByTitreContainingIgnoreCase(String titre);
+    
+    List<Conseil> findByDocteurId(Long docteurId);
 }
