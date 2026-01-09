@@ -1,6 +1,7 @@
 package medico.PPE.Controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
+import medico.PPE.Models.Docteur;
 import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.Services.UserDetailsServiceImpl;
 import medico.PPE.dtos.LoginRequest;
@@ -14,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import java.util.List;
 
 import java.io.IOException;
 
@@ -24,7 +27,7 @@ import java.io.IOException;
 public class DocteurController {
 
     private final AuthenticationManager authenticationManager;
-    private final DoctorateServiceImpl docteurService;;
+    private final DoctorateServiceImpl docteurService;
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl   userDetailsService;
 
@@ -55,6 +58,4 @@ public class DocteurController {
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
         return new LoginResponse(jwt);
     }
-
-
 }

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "conseils")
 @Data
@@ -31,8 +33,9 @@ public class Conseil {
     private LocalDate datePublication;
     
     @ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "docteur_id", nullable = false)
-private Docteur docteur;
+    @JoinColumn(name = "docteur_id", nullable = false)
+    @JsonIgnore
+    private Docteur docteur;
  
     @Column(nullable = true)
     private String imageUrl;

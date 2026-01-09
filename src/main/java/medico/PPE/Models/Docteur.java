@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import medico.PPE.Enums.AppointmentTypeEnum;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;

@@ -10,7 +10,7 @@ import java.util.List;
 public interface AppService {
     List<Appointment> getAll();
 
-    Appointment add(Appointment appointement);
+    Appointment add(AppointmentDto dto);
 
    // AppointmentDto update(Long Id, AppointmentDto appointment) throws Exception;
 

@@ -21,9 +21,6 @@ public interface AuthService {
 
     Customer getCustomerById(Long id);
 
-
-
-
     DocteurResponse createDocteur(Docteur docteur);
 
     List<Docteur> getAllDocteur();

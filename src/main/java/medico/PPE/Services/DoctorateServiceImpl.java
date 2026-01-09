@@ -79,12 +79,6 @@ public class DoctorateServiceImpl {
         return savedDocteur;
     }
 
-    /**
-     * Récupérer tous les docteurs
-     */
-    public List<Docteur> getAllDocteur() {
-        return doctorateRepository.findAll();
-    }
 
     /**
      * Récupérer un docteur par ID

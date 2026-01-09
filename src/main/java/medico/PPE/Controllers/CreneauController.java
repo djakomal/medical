@@ -87,7 +87,7 @@ public class CreneauController {
     }
     
     //  RÉCUPÉRER MES CRÉNEAUX (du docteur connecté)
-    @PreAuthorize("hasRole('DOCTOR')")
+  
     @GetMapping("/mes-creneaux")
     public ResponseEntity<?> getMesCreneaux() {
         try {
@@ -142,7 +142,7 @@ public class CreneauController {
     }
     
     //  MODIFIER UN CRÉNEAU
-    @PreAuthorize("hasRole('DOCTOR')")
+
     @PutMapping("/{id}")
     public ResponseEntity<?> modifierCreneau(
             @PathVariable Long id,
@@ -173,7 +173,7 @@ public class CreneauController {
     }
     
     //  SUPPRIMER UN CRÉNEAU
-    @PreAuthorize("hasRole('DOCTOR')")
+  
     @DeleteMapping("/{id}")
     public ResponseEntity<?> supprimerCreneau(@PathVariable Long id) {
         try {
@@ -198,7 +198,7 @@ public class CreneauController {
     }
     
     //  RÉCUPÉRER LES CRÉNEAUX D'UN DOCTEUR SPÉCIFIQUE (pour les patients)
-    @PreAuthorize("hasAnyRole('USER', 'DOCTOR')")
+
     @GetMapping("/docteur/{doctorId}")
     public ResponseEntity<?> getCreneauxDocteur(@PathVariable("doctorId") Long doctorId) {
         try {
@@ -209,7 +209,7 @@ public class CreneauController {
             
             return ResponseEntity.ok(creneaux);
         } catch (Exception e) {
-            System.err.println("❌ Erreur: " + e.getMessage());
+            System.err.println(" Erreur: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Erreur lors de la récupération des créneaux"));
         }

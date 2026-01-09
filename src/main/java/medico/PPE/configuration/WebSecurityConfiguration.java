@@ -65,20 +65,19 @@ public class WebSecurityConfiguration {
                                 "/signup/**",
                                 "/login/**",
                                 "/docteur/login/**",
-                                "/signup/docteur/add",
                                 "/error")
                         .permitAll()
 
                         // ============================================
                         // APPOINTMENT ROUTES - Protégées
                         // ============================================
-                        .requestMatchers(HttpMethod.GET, "/appointment").hasAnyRole("USER", "DOCTOR")
-                        .requestMatchers(HttpMethod.GET, "/appointment/get/**").hasAnyRole("USER", "DOCTOR")
-                        .requestMatchers(HttpMethod.POST, "/appointment/add").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/appointment/delete/**").hasAnyRole("USER", "DOCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/appointment/*/validate").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/appointment/*/reject").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/appointment/*/start").hasRole("DOCTOR")
+                        // .requestMatchers(HttpMethod.GET, "/appointment").hasAnyRole("USER", "DOCTOR")
+                        // .requestMatchers(HttpMethod.GET, "/appointment/get/**").hasAnyRole("USER", "DOCTOR")
+                        // .requestMatchers(HttpMethod.POST, "/appointment/add").hasRole("USER")
+                        // .requestMatchers(HttpMethod.DELETE, "/appointment/delete/**").hasAnyRole("USER", "DOCTOR")
+                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/validate").hasRole("DOCTOR")
+                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/reject").hasRole("DOCTOR")
+                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/start").hasRole("DOCTOR")
 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session

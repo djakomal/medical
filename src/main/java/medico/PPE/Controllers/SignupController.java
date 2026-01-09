@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/signup")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:5173"}) 
 public class SignupController {
 
     private final AuthService authService;
@@ -72,7 +72,7 @@ public class SignupController {
         }
     }
 
-    @GetMapping("/all")
+    @GetMapping("/docteur/all")
     public List<Docteur> getAllDocteur(){
         return authService.getAllDocteur();
     }

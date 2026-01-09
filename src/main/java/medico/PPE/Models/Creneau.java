@@ -2,6 +2,8 @@ package medico.PPE.Models;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +24,7 @@ public class Creneau {
 
     @ManyToOne
     @JoinColumn(name="docteur_id")
+    @JsonIgnore
     private Docteur docteur;
 
     public String getJour() {
