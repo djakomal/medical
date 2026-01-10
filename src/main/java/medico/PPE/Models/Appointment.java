@@ -10,8 +10,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
-@Getter
-@Setter
 @Table(name = "Appointment")
 @EntityListeners(AuditingEntityListener.class)
 public class Appointment {

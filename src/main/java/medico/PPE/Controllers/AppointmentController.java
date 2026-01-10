@@ -4,6 +4,8 @@ import medico.PPE.Models.Appointment;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.Services.AppService;
+import medico.PPE.dtos.AppointmentDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,11 +86,11 @@ public class AppointmentController {
 
     //  AJOUTER UN RENDEZ-VOUS
     @PostMapping("/add")
-    public ResponseEntity<?> add(@RequestBody Appointment appointment) {
+    public ResponseEntity<?> add(@RequestBody AppointmentDto dto) {
         try {
             System.out.println("➕ Ajout d'un nouveau rendez-vous");
             
-            Appointment saved = appService.add(appointment);
+            Appointment saved = appService.add(dto);
             System.out.println(" Rendez-vous créé - ID: " + saved.getId());
             
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
