@@ -20,7 +20,7 @@ public class Appointment {
 	@Column(name = "email")
 	private String email;
 	@Column(name = "status")
-	private String status;
+	private String  status="pending";
 	
 	@ManyToOne(fetch=FetchType.EAGER)
 	@JoinColumn(name="docteur_id",nullable=false)
@@ -67,10 +67,6 @@ public class Appointment {
 	private String preferredDate;
 	@Column(name = "preferredTime")
 	private String preferredTime;
-
-
-
-
-
+	
 
 }

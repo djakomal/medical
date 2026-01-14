@@ -1,101 +1,96 @@
 package medico.PPE.Services;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import medico.PPE.Models.Conseil;
+import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.ConseilRepository;
-import medico.PPE.dtos.ConseilDto;
+import medico.PPE.Repositories.DoctorateRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class ConseilService {
     
+    private final ConseilRepository conseilRepository;
+    private final DoctorateRepository docteurRepository;
+
     @Autowired
-    private ConseilRepository conseilRepository;
+    public ConseilService(DoctorateRepository docteurRepository, ConseilRepository conseilRepository) {
+        this.docteurRepository = docteurRepository;
+        this.conseilRepository = conseilRepository;
+    }
     
     // Créer un nouveau conseil
-    public ConseilDto creerConseil(ConseilDto conseilDTO) {
-        Conseil conseil = convertToEntity(conseilDTO);
-        Conseil savedConseil = conseilRepository.save(conseil);
-        return convertToDTO(savedConseil);
+    public Conseil creerConseil(Conseil conseil, String username) {
+        Docteur docteur = docteurRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
+        conseil.setDocteur(docteur);
+        conseil.setAuteur(docteur.getName());
+        return conseilRepository.save(conseil);
     }
     
     // Récupérer tous les conseils
-    public List<ConseilDto> getAllConseils() {
-        return conseilRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Conseil> getAllConseils() {
+        return conseilRepository.findAll();
     }
     
     // Récupérer les conseils publiés
-    public List<ConseilDto> getConseilsPublies() {
-        return conseilRepository.findByPublieTrue().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Conseil> getConseilsPublies() {
+        return conseilRepository.findByPublieTrue();
     }
     
     // Récupérer un conseil par ID
-    public ConseilDto getConseilById(Long id) {
+    public Conseil getConseilById(Long id) {
         Conseil conseil = conseilRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conseil non trouvé avec l'ID: " + id));
         
         // Incrémenter le nombre de vues
         conseil.setNombreVues(conseil.getNombreVues() + 1);
-        conseilRepository.save(conseil);
-        
-        return convertToDTO(conseil);
+        return conseilRepository.save(conseil);
     }
     
     // Récupérer les conseils par catégorie
-    public List<ConseilDto> getConseilsByCategorie(String categorie) {
-        return conseilRepository.findByCategorie(categorie).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Conseil> getConseilsByCategorie(String categorie) {
+        return conseilRepository.findByCategorie(categorie);
     }
     
     // Récupérer les conseils par auteur
-    public List<ConseilDto> getConseilsByAuteur(String auteur) {
-        return conseilRepository.findByAuteur(auteur).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Conseil> getConseilsByAuteur(String auteur) {
+        return conseilRepository.findByAuteur(auteur);
     }
     
     // Rechercher des conseils par titre
-    public List<ConseilDto> rechercherConseils(String query) {
-        return conseilRepository.findByTitreContainingIgnoreCase(query).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Conseil> rechercherConseils(String query) {
+        return conseilRepository.findByTitreContainingIgnoreCase(query);
     }
     
     // Mettre à jour un conseil
-    public ConseilDto updateConseil(Long id, ConseilDto conseilDTO) {
+    public Conseil updateConseil(Long id, Conseil conseilData) {
         Conseil conseil = conseilRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conseil non trouvé avec l'ID: " + id));
         
-        conseil.setTitre(conseilDTO.getTitre());
-        conseil.setContenu(conseilDTO.getContenu());
-        conseil.setAuteur(conseilDTO.getAuteur());
-        conseil.setImageUrl(conseilDTO.getImageUrl());
-        conseil.setTags(conseilDTO.getTags());
-        conseil.setCategorie(conseilDTO.getCategorie());
-        conseil.setPublie(conseilDTO.getPublie());
+        conseil.setTitre(conseilData.getTitre());
+        conseil.setContenu(conseilData.getContenu());
+        conseil.setDatePublication(conseilData.getDatePublication());
+        conseil.setImageUrl(conseilData.getImageUrl());
+        conseil.setTags(conseilData.getTags());
+        conseil.setCategorie(conseilData.getCategorie());
+        conseil.setPublie(conseilData.getPublie());
         
-        Conseil updatedConseil = conseilRepository.save(conseil);
-        return convertToDTO(updatedConseil);
+        return conseilRepository.save(conseil);
     }
     
     // Publier/Dépublier un conseil
-    public ConseilDto togglePublish(Long id) {
+    public Conseil togglePublish(Long id) {
         Conseil conseil = conseilRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conseil non trouvé avec l'ID: " + id));
         
         conseil.setPublie(!conseil.getPublie());
-        Conseil updatedConseil = conseilRepository.save(conseil);
-        return convertToDTO(updatedConseil);
+        return conseilRepository.save(conseil);
     }
     
     // Supprimer un conseil
@@ -105,45 +100,9 @@ public class ConseilService {
         }
         conseilRepository.deleteById(id);
     }
-    
-    // Conversion Entity -> DTO
-    private ConseilDto convertToDTO(Conseil conseil) {
-        return new ConseilDto(
-                conseil.getId(),
-                conseil.getTitre(),
-                conseil.getContenu(),
-                conseil.getAuteur(),
-                conseil.getDatePublication(),
-                conseil.getImageUrl(),
-                conseil.getTags(),
-                conseil.getCategorie(),
-                conseil.getPublie(),
-                conseil.getNombreVues()
-        );
-    }
 
-    public List<ConseilDto> getConseilsByDocteur(Long docteurId) {
-        return conseilRepository.findByDocteurId(docteurId)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    // Récupérer les conseils par docteur
+    public List<Conseil> getConseilsByDocteur(Long docteurId) {
+        return conseilRepository.findByDocteurId(docteurId);
     }
-    
-    // Conversion DTO -> Entity
-    private Conseil convertToEntity(ConseilDto dto) {
-        Conseil conseil = new Conseil();
-        conseil.setId(dto.getId());
-        conseil.setTitre(dto.getTitre());
-        conseil.setContenu(dto.getContenu());
-        conseil.setAuteur(dto.getAuteur());
-        conseil.setDatePublication(dto.getDatePublication());
-        conseil.setImageUrl(dto.getImageUrl());
-        conseil.setTags(dto.getTags());
-        conseil.setCategorie(dto.getCategorie());
-        conseil.setPublie(dto.getPublie() != null ? dto.getPublie() : false);
-        conseil.setNombreVues(dto.getNombreVues() != null ? dto.getNombreVues() : 0);
-        return conseil;
-    }
-
-
 }

@@ -53,7 +53,6 @@ public class AppServiceImp implements AppService {
         appointment.setAllergies(dto.getAllergies());
         appointment.setMedications(dto.getMedications());
         appointment.setAdditionalInfo(dto.getAdditionalInfo());
-
         appointment.setStatus("pending");
 
     

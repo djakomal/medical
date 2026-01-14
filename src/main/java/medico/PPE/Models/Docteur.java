@@ -66,4 +66,9 @@ public class Docteur {
         @Transient  // Ne pas persister cette propriété
         private String confirmpassword;
 
+        public String getDatePublication() {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'getDatePublication'");
+        }
+
 }

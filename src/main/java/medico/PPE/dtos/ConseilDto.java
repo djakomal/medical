@@ -2,6 +2,8 @@ package medico.PPE.dtos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import medico.PPE.Models.Docteur;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -13,10 +15,13 @@ public class ConseilDto {
     private String titre;
     private String contenu;
     private String auteur;
+    // private String docteur;
+    private Long docteurId;
     private LocalDate datePublication;
     private String imageUrl;
     private List<String> tags;
     private String categorie;
     private Boolean publie;
     private Integer nombreVues;
+    // public Docteur getDocteur;
 }

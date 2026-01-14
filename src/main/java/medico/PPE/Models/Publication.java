@@ -10,11 +10,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "conseils")
+@Table(name = "publication")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Conseil {
+public class Publication {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,33 +27,12 @@ public class Conseil {
     private String contenu;
     
     @Column(nullable = false)
-    private String auteur;
-    
-    @Column(nullable = false)
     private LocalDate datePublication;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "docteur_id", nullable = false)
-    @JsonIgnore
-    private Docteur docteur;
- 
     @Column(nullable = true)
     private String imageUrl;
-    
-    @ElementCollection
-    @CollectionTable(name = "conseil_tags", joinColumns = @JoinColumn(name = "conseil_id"))
-    @Column(name = "tag")
-    private List<String> tags;
-    
-    @Column(nullable = false)
-    private String categorie; 
-    
-    @Column(nullable = false)
+
     private Boolean publie = false;
-    
-    @Column
-    private Integer nombreVues = 0;
-    
     @PrePersist
     protected void onCreate() {
         if (datePublication == null) {

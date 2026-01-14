@@ -3,9 +3,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import medico.PPE.Models.Conseil;
 import medico.PPE.Services.ConseilService;
-import medico.PPE.dtos.ConseilDto;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,20 +20,28 @@ public class ConseilController {
     
     // Créer un nouveau conseil
     @PostMapping
-    public ResponseEntity<ConseilDto> creerConseil(@RequestBody ConseilDto conseilDTO) {
+    public ResponseEntity<Conseil> creerConseil(@RequestBody Conseil conseil, Principal principal) {
         try {
-            ConseilDto createdConseil = conseilService.creerConseil(conseilDTO);
+            
+            if (principal == null) {
+                return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            }
+            
+            String username = principal.getName();
+            Conseil createdConseil = conseilService.creerConseil(conseil, username);
+            
             return new ResponseEntity<>(createdConseil, HttpStatus.CREATED);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
     // Récupérer tous les conseils
     @GetMapping
-    public ResponseEntity<List<ConseilDto>> getAllConseils() {
+    public ResponseEntity<List<Conseil>> getAllConseils() {
         try {
-            List<ConseilDto> conseils = conseilService.getAllConseils();
+            List<Conseil> conseils = conseilService.getAllConseils();
             return new ResponseEntity<>(conseils, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -40,20 +50,20 @@ public class ConseilController {
     
     // Récupérer les conseils publiés
     @GetMapping("/publies")
-    public ResponseEntity<List<ConseilDto>> getConseilsPublies() {
+    public ResponseEntity<List<Conseil>> getConseilsPublies() {
         try {
-            List<ConseilDto> conseils = conseilService.getConseilsPublies();
+            List<Conseil> conseils = conseilService.getConseilsPublies();
             return new ResponseEntity<>(conseils, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     // Récupérer un conseil par ID
     @GetMapping("/{id}")
-    public ResponseEntity<ConseilDto> getConseilById(@PathVariable Long id) {
+    public ResponseEntity<Conseil> getConseilById(@PathVariable Long id) {
         try {
-            ConseilDto conseil = conseilService.getConseilById(id);
+            Conseil conseil = conseilService.getConseilById(id);
             return new ResponseEntity<>(conseil, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -62,9 +72,9 @@ public class ConseilController {
     
     // Récupérer les conseils par catégorie
     @GetMapping("/categorie/{categorie}")
-    public ResponseEntity<List<ConseilDto>> getConseilsByCategorie(@PathVariable String categorie) {
+    public ResponseEntity<List<Conseil>> getConseilsByCategorie(@PathVariable String categorie) {
         try {
-            List<ConseilDto> conseils = conseilService.getConseilsByCategorie(categorie);
+            List<Conseil> conseils = conseilService.getConseilsByCategorie(categorie);
             return new ResponseEntity<>(conseils, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -73,9 +83,9 @@ public class ConseilController {
     
     // Récupérer les conseils par auteur
     @GetMapping("/auteur/{auteur}")
-    public ResponseEntity<List<ConseilDto>> getConseilsByAuteur(@PathVariable String auteur) {
+    public ResponseEntity<List<Conseil>> getConseilsByAuteur(@PathVariable String auteur) {
         try {
-            List<ConseilDto> conseils = conseilService.getConseilsByAuteur(auteur);
+            List<Conseil> conseils = conseilService.getConseilsByAuteur(auteur);
             return new ResponseEntity<>(conseils, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -84,9 +94,9 @@ public class ConseilController {
     
     // Rechercher des conseils
     @GetMapping("/recherche")
-    public ResponseEntity<List<ConseilDto>> rechercherConseils(@RequestParam String query) {
+    public ResponseEntity<List<Conseil>> rechercherConseils(@RequestParam String query) {
         try {
-            List<ConseilDto> conseils = conseilService.rechercherConseils(query);
+            List<Conseil> conseils = conseilService.rechercherConseils(query);
             return new ResponseEntity<>(conseils, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -95,11 +105,11 @@ public class ConseilController {
     
     // Mettre à jour un conseil
     @PutMapping("/{id}")
-    public ResponseEntity<ConseilDto> updateConseil(
+    public ResponseEntity<Conseil> updateConseil(
             @PathVariable Long id, 
-            @RequestBody ConseilDto conseilDTO) {
+            @RequestBody Conseil conseil) {
         try {
-            ConseilDto updatedConseil = conseilService.updateConseil(id, conseilDTO);
+            Conseil updatedConseil = conseilService.updateConseil(id, conseil);
             return new ResponseEntity<>(updatedConseil, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -108,9 +118,9 @@ public class ConseilController {
     
     // Publier/Dépublier un conseil
     @PatchMapping("/{id}/toggle-publish")
-    public ResponseEntity<ConseilDto> togglePublish(@PathVariable Long id) {
+    public ResponseEntity<Conseil> togglePublish(@PathVariable Long id) {
         try {
-            ConseilDto updatedConseil = conseilService.togglePublish(id);
+            Conseil updatedConseil = conseilService.togglePublish(id);
             return new ResponseEntity<>(updatedConseil, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -128,11 +138,14 @@ public class ConseilController {
         }
     }
 
+    // Récupérer les conseils par docteur
     @GetMapping("/docteur/{docteurId}")
-public ResponseEntity<List<ConseilDto>> getConseilsByDocteur(
-        @PathVariable Long docteurId) {
-
-    List<ConseilDto> conseils = conseilService.getConseilsByDocteur(docteurId);
-    return ResponseEntity.ok(conseils);
-}
+    public ResponseEntity<List<Conseil>> getConseilsByDocteur(@PathVariable Long docteurId) {
+        try {
+            List<Conseil> conseils = conseilService.getConseilsByDocteur(docteurId);
+            return ResponseEntity.ok(conseils);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
