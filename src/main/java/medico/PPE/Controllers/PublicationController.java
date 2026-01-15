@@ -1,14 +1,13 @@
 package medico.PPE.Controllers;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import medico.PPE.Models.Publication;
-import medico.PPE.Services.ConseilService;
 import medico.PPE.Services.PublicationService;
-import medico.PPE.dtos.ConseilDto;
+
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -19,10 +18,18 @@ public class PublicationController {
     @Autowired
     private PublicationService publicationService;
     
+    // Créer un nouveau Publication
     @PostMapping
-    public ResponseEntity<Publication> creerPublication(@RequestBody Publication publication) {
+    public ResponseEntity<Publication> creerPublication(@RequestBody Publication publication, Principal principal) {
         try {
+            
+            if (principal == null) {
+                return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            }
+            
+            // String username = principal.getName();
             Publication createdPublication = publicationService.creerPublication(publication);
+            
             return new ResponseEntity<>(createdPublication, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -30,9 +37,9 @@ public class PublicationController {
         }
     }
     
-    // Récupérer tous les conseils
+    // Récupérer tous les Publications
     @GetMapping
-    public ResponseEntity<List<Publication>> getAllPublication() {
+    public ResponseEntity<List<Publication>> getAllPublications() {
         try {
             List<Publication> publications = publicationService.getAllPublication();
             return new ResponseEntity<>(publications, HttpStatus.OK);
@@ -41,18 +48,18 @@ public class PublicationController {
         }
     }
     
-    // Récupérer les conseils publiés
+    // Récupérer les Publications publiés
     @GetMapping("/publies")
     public ResponseEntity<List<Publication>> getPublicationPublies() {
         try {
-            List<Publication> publications = publicationService.getPublicationPublies();
-            return new ResponseEntity<>(publications, HttpStatus.OK);
+            List<Publication> publication = publicationService.getPublicationPublies();
+            return new ResponseEntity<>(publication, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-    // Récupérer un conseil par ID
+
+    // Récupérer un Publication par ID
     @GetMapping("/{id}")
     public ResponseEntity<Publication> getPublicationById(@PathVariable Long id) {
         try {
@@ -62,7 +69,22 @@ public class PublicationController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
-    // Publier/Dépublier un conseil
+
+    
+    // Mettre à jour un Publication
+    // @PutMapping("/{id}")
+    // public ResponseEntity<Publication> updatePublication(
+    //         @PathVariable Long id, 
+    //         @RequestBody Publication publication) {
+    //     try {
+    //         Publication updatedPublication = PublicationService.updatePublication(id, publication);
+    //         return new ResponseEntity<>(updatedPublication, HttpStatus.OK);
+    //     } catch (RuntimeException e) {
+    //         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    //     }
+    // }
+    
+    // Publier/Dépublier un Publication
     @PatchMapping("/{id}/toggle-publish")
     public ResponseEntity<Publication> togglePublish(@PathVariable Long id) {
         try {
@@ -73,7 +95,7 @@ public class PublicationController {
         }
     }
     
-    // Supprimer un conseil
+    // Supprimer un Publication
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deletePublication(@PathVariable Long id) {
         try {

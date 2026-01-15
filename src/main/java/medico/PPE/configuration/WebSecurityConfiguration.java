@@ -79,6 +79,7 @@ public class WebSecurityConfiguration {
                         // .requestMatchers(HttpMethod.PUT, "/appointment/*/reject").hasRole("DOCTOR")
                         // .requestMatchers(HttpMethod.PUT, "/appointment/*/start").hasRole("DOCTOR")
                         .requestMatchers("api/conseils/**").permitAll()
+                        .requestMatchers("api/publication/**").permitAll()
 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session

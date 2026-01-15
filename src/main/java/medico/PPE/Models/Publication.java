@@ -29,7 +29,7 @@ public class Publication {
     @Column(nullable = false)
     private LocalDate datePublication;
     
-    @Column(nullable = true)
+    @Column(length = 10485760)
     private String imageUrl;
 
     private Boolean publie = false;
