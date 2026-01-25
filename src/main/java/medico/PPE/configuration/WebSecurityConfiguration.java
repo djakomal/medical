@@ -67,6 +67,10 @@ public class WebSecurityConfiguration {
                                 "/docteur/login/**",
                                 "/error")
                         .permitAll()
+                        .requestMatchers("/api/meetings/**",
+                        "/api/zoom/**",
+                        "/error",
+                        "/actuator/**").permitAll()
 
                         // ============================================
                         // APPOINTMENT ROUTES - Protégées

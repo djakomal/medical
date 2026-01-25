@@ -18,6 +18,12 @@ import java.util.function.Function;
 public class JwtUtil {
 
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+    
+    // Durée de vie du token (30 minutes)
+    private static final long TOKEN_VALIDITY = 1000 * 60 * 30;
+    
+    // Seuil pour le rafraîchissement automatique (5 minutes avant expiration)
+    private static final long REFRESH_THRESHOLD = 1000 * 60 * 5;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -56,8 +62,9 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
+                .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     private Key getSignKey() {
@@ -65,4 +72,25 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Vérifier si le token doit être rafraîchi (moins de 5 minutes avant expiration)
+    public boolean shouldRefreshToken(String token) {
+        try {
+            Date expiration = extractExpiration(token);
+            long timeUntilExpiration = expiration.getTime() - System.currentTimeMillis();
+            // Rafraîchir si le token expire dans moins de 5 minutes mais n'est pas encore expiré
+            return timeUntilExpiration > 0 && timeUntilExpiration < REFRESH_THRESHOLD;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Rafraîchir le token en gardant le même username
+    public String refreshToken(String oldToken) {
+        try {
+            String username = extractUsername(oldToken);
+            return generateToken(username);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to refresh token", e);
+        }
+    }
 }

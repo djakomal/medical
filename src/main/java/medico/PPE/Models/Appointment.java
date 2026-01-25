@@ -41,6 +41,9 @@ public class Appointment {
     private String birthdate;
 	@Column(name = "gender")
     private String gender;
+
+	private String zoomJoinUrl;
+    private String zoomMeetingId;
 	@Column(name = "phone")
     private String phone;
 	@Column(name = "insurance")

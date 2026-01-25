@@ -257,6 +257,7 @@ public class AppointmentController {
             Appointment started = appService.startAppointment(id);
             response.put("success", true);
             response.put("message", "Rendez-vous débuté avec succès");
+            response.put("joinUrl", started.getZoomJoinUrl());
             response.put("appointment", started);
             
             return ResponseEntity.ok(response);
