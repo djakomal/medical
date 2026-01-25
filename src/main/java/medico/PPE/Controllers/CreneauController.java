@@ -112,7 +112,6 @@ public class CreneauController {
     }
     
     //  AJOUTER UN CRÉNEAU
-    @PreAuthorize("hasRole('DOCTOR')")
     @PostMapping
     public ResponseEntity<?> ajouterCreneau(@RequestBody Creneau creneauRequest) {
         try {
