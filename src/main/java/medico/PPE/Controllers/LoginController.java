@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import io.jsonwebtoken.Jwts;
+
 @RestController
 @RequestMapping("/login")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -49,12 +51,17 @@ public class LoginController {
             
             // ✅ Charger les détails de l'utilisateur
             UserDetails userDetails = userDetailsService.loadUserByUsername(normalizedUsername);
+
+
+            // Récupérer l'ID utilisateur
+            Long userId = userDetailsService.getUserIdByUsername(normalizedUsername);
             
-            // ✅ Générer le token JWT
-            String jwt = jwtUtil.generateToken(userDetails.getUsername());
+            // Créer le token avec TOUTES les informations
+            String jwt = jwtUtil.generateToken(normalizedUsername, userId);
+      
             
             // ✅ Retourner le token
-            return ResponseEntity.ok(new LoginResponse(jwt));
+            return ResponseEntity.ok(new LoginResponse(jwt,userId));
             
         } catch (UsernameNotFoundException e) {
             return ResponseEntity

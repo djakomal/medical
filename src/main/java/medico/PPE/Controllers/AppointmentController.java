@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import io.jsonwebtoken.lang.Collections;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +170,19 @@ public class AppointmentController {
         }
     }
 
+
+    // Dans votre AppointmentController
+    @GetMapping("/patient/{patientId}")
+     public ResponseEntity<?> getAppointmentsByPatient(@PathVariable Long patientId) {
+     Appointment appointments = appService.getAppointmentsByPatient(patientId);
+    
+    if (appointments == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Collections.emptyList());
+    }
+    
+    return ResponseEntity.ok(appointments);
+}
     //  VALIDER UN RENDEZ-VOUS
     @PutMapping("/{id}/validate")
     public ResponseEntity<Map<String, Object>> validateAppointment(@PathVariable Long id) {

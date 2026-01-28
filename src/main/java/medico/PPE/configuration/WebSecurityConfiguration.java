@@ -2,6 +2,7 @@ package medico.PPE.configuration;
 
 import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.Services.UserDetailsServiceImpl;
+import medico.PPE.Services.ZoomMeetingService;
 import medico.PPE.filters.CustomerJwtRequestFilter;
 import medico.PPE.filters.DocteurJwtRequestFilter;
 import medico.PPE.jwt.CustomerServiceImpl;
@@ -40,16 +41,18 @@ public class WebSecurityConfiguration {
     private final DocteurJwtRequestFilter docteurFilter;
     private final DoctorateServiceImpl docteurService;
     private final CustomerServiceImpl customerservice;
+    private final ZoomMeetingService zoomservice;
 
     @Autowired
     public WebSecurityConfiguration(DoctorateServiceImpl docteurService,
             CustomerServiceImpl customerservice, UserDetailsServiceImpl userDetailsServiceImpl,
-            CustomerJwtRequestFilter customerFilter, DocteurJwtRequestFilter docteurFilter) {
+            CustomerJwtRequestFilter customerFilter, DocteurJwtRequestFilter docteurFilter,ZoomMeetingService zoomservice) {
         this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.customerFilter = customerFilter;
         this.docteurFilter = docteurFilter;
         this.docteurService = docteurService;
         this.customerservice = customerservice;
+        this.zoomservice=zoomservice;
     }
 
     @Bean
@@ -67,10 +70,10 @@ public class WebSecurityConfiguration {
                                 "/docteur/login/**",
                                 "/error")
                         .permitAll()
-                        .requestMatchers("/api/meetings/**",
-                        "/api/zoom/**",
-                        "/error",
-                        "/actuator/**").permitAll()
+                        .requestMatchers("/api/meetings/authorize").permitAll()
+                        .requestMatchers("/api/meetings/authorize/**").permitAll()
+                        .requestMatchers("/api/meetings/callback").permitAll()
+                        .requestMatchers("/api/meetings/refresh-token").permitAll()
 
                         // ============================================
                         // APPOINTMENT ROUTES - Protégées

@@ -136,7 +136,7 @@ public class AuthServiceImpl implements AuthService {
         System.out.println("✅ Docteur créé: " + createdDocteur.getUsername());
 
         // Créer un token JWT
-        String token = jwtUtil.generateToken(createdDocteur.getUsername());
+        String token = jwtUtil.generateToken(createdDocteur.getUsername(),createdDocteur.getId());
 
         return new DocteurResponse(createdDocteur, token);
     }

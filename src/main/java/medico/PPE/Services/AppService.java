@@ -27,4 +27,6 @@ public interface AppService {
     List<Appointment> getAppointmentByDoctor(Long doctorId);
     
     List<Appointment> getAppointmentByEmail(String email);
+
+    Appointment getAppointmentsByPatient(Long patientId);
 }

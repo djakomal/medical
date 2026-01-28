@@ -6,10 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import medico.PPE.Enums.AppointmentTypeEnum;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -18,7 +23,7 @@ import java.util.List;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Docteur {
+public class Docteur implements UserDetails {
 
 
         @Id
@@ -65,5 +70,34 @@ public class Docteur {
 
         @Transient  // Ne pas persister cette propriété
         private String confirmpassword;
+
+
+
+
+            // Implémentation UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_DOCTEUR"));
+    }
+    
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
 }

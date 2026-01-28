@@ -51,12 +51,13 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username,Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
+        claims.put("userId", userId);
+        return createToken(claims, username,userId);
     }
 
-    private String createToken(Map<String, Object> claims, String userName) {
+    private String createToken(Map<String, Object> claims, String userName ,Long userId) {
         return Jwts
                 .builder()
                 .setClaims(claims)
@@ -88,7 +89,8 @@ public class JwtUtil {
     public String refreshToken(String oldToken) {
         try {
             String username = extractUsername(oldToken);
-            return generateToken(username);
+            Long userId = null;
+            return generateToken(username,userId);
         } catch (Exception e) {
             throw new RuntimeException("Unable to refresh token", e);
         }

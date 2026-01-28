@@ -1,5 +1,7 @@
 package medico.PPE.Services;
 
+import medico.PPE.Models.Customer;
+import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.CustomerRepository;
 import medico.PPE.Repositories.DoctorateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -95,4 +98,35 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         return null;
     }
+ /**
+     * Récupère l'ID utilisateur par username
+     */
+    public Long getUserIdByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedUsername = username.trim().toLowerCase();
+        System.out.println("🔍 Recherche ID pour username: " + normalizedUsername);
+
+        // Chercher d'abord dans Customer
+        Optional<Customer> customer = customerRepository.findByUsername(normalizedUsername);
+        if (customer.isPresent()) {
+            Long id = customer.get().getId();
+            System.out.println("✅ ID Customer trouvé: " + id);
+            return id;
+        }
+
+        // Chercher ensuite dans Docteur
+        Optional<Docteur> docteur = doctorateRepository.findByUsername(normalizedUsername);
+        if (docteur.isPresent()) {
+            Long id = docteur.get().getId();
+            System.out.println("✅ ID Docteur trouvé: " + id);
+            return id;
+        }
+
+        System.out.println("❌ Aucun ID trouvé pour username: " + normalizedUsername);
+        return null;
+    }
+
 }

@@ -1,4 +1,3 @@
 package medico.PPE.dtos;
 
-public record LoginResponse(String jwt) {
-}
+public record LoginResponse(String jwt,Long userId) {}

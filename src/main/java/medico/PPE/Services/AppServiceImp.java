@@ -79,6 +79,11 @@ public class AppServiceImp implements AppService {
     public Appointment getAppById(Long id) {
         return appointmentRepository.findById(id).orElse(null);
     }
+
+    @Override
+    public Appointment getAppointmentsByPatient(Long patientId){
+        return appointmentRepository.findById(patientId).orElse(null);
+    }
     
     @Override
     public Appointment validateAppointment(Long id) throws Exception {
