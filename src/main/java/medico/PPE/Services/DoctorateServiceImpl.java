@@ -22,7 +22,7 @@ public class DoctorateServiceImpl {
      * Ajouter un nouveau docteur avec validation des créneaux
      */
     public Docteur add(Docteur docteur) {
-        // ✅ Validation des champs obligatoires
+        //  Validation des champs obligatoires
         if (docteur.getUsername() == null || docteur.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire");
         }
@@ -33,12 +33,12 @@ public class DoctorateServiceImpl {
         String normalizedUsername = docteur.getUsername().trim().toLowerCase();
         String normalizedEmail = docteur.getEmail().trim().toLowerCase();
 
-        // ✅ Vérifier si le username existe déjà
+        //  Vérifier si le username existe déjà
         if (userDetailsService.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Ce nom d'utilisateur est déjà pris");
         }
 
-        // ✅ Vérifier si l'email existe déjà
+        //  Vérifier si l'email existe déjà
         if (userDetailsService.existsByEmail(normalizedEmail)) {
             throw new IllegalArgumentException("Un compte existe déjà avec cet email");
         }
@@ -47,7 +47,7 @@ public class DoctorateServiceImpl {
         docteur.setUsername(normalizedUsername);
         docteur.setEmail(normalizedEmail);
 
-        // ✅ Validation des créneaux
+        //  Validation des créneaux
         List<Creneau> creneaux = docteur.getCreneau();
         if (creneaux != null && !creneaux.isEmpty()) {
             Set<String> uniqueCreneaux = new HashSet<>();
@@ -75,7 +75,7 @@ public class DoctorateServiceImpl {
         }
 
         Docteur savedDocteur = doctorateRepository.save(docteur);
-        System.out.println("✅ Docteur créé: " + savedDocteur.getUsername());
+        System.out.println(" Docteur créé: " + savedDocteur.getUsername());
         return savedDocteur;
     }
 

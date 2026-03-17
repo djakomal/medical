@@ -9,12 +9,13 @@ import medico.PPE.dtos.SignupRequest;
 
 
 import java.util.List;
+import java.util.Map;
 
 public interface AuthService {
     Customer createCustomer(SignupRequest signupRequest);
 
     List<Customer> getAll();
-
+    void activation(Map<String, String> activation); 
 
 
     void delete(Long Id);

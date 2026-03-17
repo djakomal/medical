@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -213,4 +215,32 @@ public class CreneauController {
                 .body(Map.of("message", "Erreur lors de la récupération des créneaux"));
         }
     }
+
+    @GetMapping("/{id}/disponibilite")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> verifierDisponibilite(@PathVariable Long id) {
+        try {
+            boolean disponible = creneauService.estDisponible(id);
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("disponible", disponible);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // NOUVEL ENDPOINT : Marquer comme indisponible
+    @PutMapping("/{id}/indisponible")
+    @PreAuthorize("hasAnyRole('PATIENT', 'DOCTOR', 'ADMIN')")
+    public ResponseEntity<Creneau> marquerIndisponible(@PathVariable Long id) {
+        try {
+            Creneau creneau = creneauService.marquerIndisponible(id);
+            return ResponseEntity.ok(creneau);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+
 }

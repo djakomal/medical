@@ -22,4 +22,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT DISTINCT a FROM Appointment a LEFT JOIN FETCH a.doctor WHERE a.email = :email")
     List<Appointment> findByEmail(@Param("email") String email);
 
+    boolean existsByCreneauId(Long creneauId);
+
+    @Query("SELECT a FROM Appointment a WHERE a.patient.id = :patientId")
+    List<Appointment> findAppointmentsByPatientId(@Param("patientId") Long patientId);
+
 }

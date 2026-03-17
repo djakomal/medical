@@ -36,9 +36,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         var customer = customerRepository.findByUsername(normalizedUsername);
         if (customer.isPresent()) {
             System.out.println(" Customer trouvé: " + customer.get().getUsername());
+            Customer c = customer.get();
             return new User(
-                customer.get().getUsername(),
-                customer.get().getPassword(),
+                c.getUsername(),
+                c.getPassword(),
+                c.isEnabled(),          // ← enabled réel
+                true,                   // accountNonExpired
+                true,                   // credentialsNonExpired
+                true,                   // accountNonLocked
                 List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
             );
         }
@@ -47,9 +52,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         var docteur = doctorateRepository.findByUsername(normalizedUsername);
         if (docteur.isPresent()) {
             System.out.println(" Docteur trouvé: " + docteur.get().getUsername());
+            Docteur d = docteur.get();
             return new User(
-                docteur.get().getUsername(),
-                docteur.get().getPassword(),
+                d.getUsername(),
+                d.getPassword(),
+                d.isEnabled(),          // ← enabled réel
+                true, true, true,
                 List.of(new SimpleGrantedAuthority("ROLE_DOCTEUR"))
             );
         }

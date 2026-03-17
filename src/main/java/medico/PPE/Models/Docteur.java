@@ -58,8 +58,9 @@ public class Docteur implements UserDetails {
 
         @Column(name = "photo_url")
         private String photoUrl;
-
-        @OneToMany(mappedBy = "docteur", cascade = CascadeType.ALL, orphanRemoval = true)
+        @JsonIgnore
+        @OneToMany(mappedBy = "docteur", cascade = CascadeType.ALL, 
+        orphanRemoval = true, fetch = FetchType.EAGER)
         private List<Creneau> creneau;
 
         @Column(name = "cvurl")
@@ -94,10 +95,17 @@ public class Docteur implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
+    @Column(nullable = false)
+    private boolean enabled = false;
     
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;           // ← utiliser le vrai champ
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;        // ← plus d'exception
     }
 
 }

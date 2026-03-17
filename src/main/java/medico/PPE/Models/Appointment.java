@@ -21,6 +21,10 @@ public class Appointment {
 	private String email;
 	@Column(name = "status")
 	private String  status="pending";
+
+	@ManyToOne
+    @JoinColumn(name = "patient_id")  // Nom de la colonne dans la table appointments
+    private Customer patient;
 	
 	@ManyToOne(fetch=FetchType.EAGER)
 	@JoinColumn(name="docteur_id",nullable=false)

@@ -23,9 +23,10 @@ import java.util.Set;
 public class CustomerJwtRequestFilter extends BaseJwtRequestFilter {
     
     private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
-        "/login/login",
+        "/login",
         "/signup/client",
-        "/signup/docteur"
+        "/signup/docteur",
+        "/code-activation"
     );
 
     private final UserDetailsServiceImpl userDetailsService;

@@ -1,68 +1,40 @@
 package medico.PPE.dtos;
 
-
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import medico.PPE.Models.Customer;
 
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignupRequest {
 
+    private Long id;        
     private String email;
-
     private String username;
-
     private String password;
-
     private String confirmpassword;
-    private String Gender;
+    private String gender;   
 
-    public String getUsername() {
-        return username;
+    public static SignupRequest fromEntity(Customer user) {
+        if (user == null) return null;
+
+        return SignupRequest.builder()
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .build();
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public static Customer toEntity(SignupRequest userDto) {
+        if (userDto == null) return null;
 
-    public String getGender() {
-        return Gender;
-    }
-
-    public void setGender(String gender) {
-        Gender = gender;
-    }
-
-
-
-
-   
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getConfirmpassword() {
-        return confirmpassword;
-    }
-
-    public void setConfirmpassword(String confirmpassword) {
-        this.confirmpassword = confirmpassword;
+        Customer user = new Customer();
+        user.setId(userDto.getId());
+        user.setEmail(userDto.getEmail());       // ✅ était "seEmail"
+        user.setPassword(userDto.getPassword());
+        return user;
     }
 }

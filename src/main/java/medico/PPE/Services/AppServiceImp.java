@@ -86,6 +86,13 @@ public class AppServiceImp implements AppService {
     }
     
     @Override
+    public List<Appointment> getAllAppointmentsByPatient(Long patientId) {
+        Docteur patient = doctorateRepository.findById(patientId)
+            .orElseThrow(() -> new RuntimeException("Patient non trouvé avec l'ID : " + patientId));
+        
+        return appointmentRepository.findAppointmentsByPatientId(patient.getId());
+    }
+    @Override
     public Appointment validateAppointment(Long id) throws Exception {
         Appointment appointment = appointmentRepository.findById(id)
             .orElseThrow(() -> new Exception("Appointment not found with id: " + id));

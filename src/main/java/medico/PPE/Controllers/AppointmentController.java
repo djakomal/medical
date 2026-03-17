@@ -183,6 +183,13 @@ public class AppointmentController {
     
     return ResponseEntity.ok(appointments);
 }
+
+    @GetMapping("/patient/all/{patientId}")
+    public ResponseEntity<?> getAllAppointmentsByPatient(@PathVariable Long patientId) {   
+    List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
+    return ResponseEntity.ok(appointments);
+    }
+
     //  VALIDER UN RENDEZ-VOUS
     @PutMapping("/{id}/validate")
     public ResponseEntity<Map<String, Object>> validateAppointment(@PathVariable Long id) {

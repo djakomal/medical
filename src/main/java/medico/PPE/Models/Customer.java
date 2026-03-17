@@ -1,7 +1,9 @@
 package medico.PPE.Models;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,6 +34,25 @@ public class Customer implements UserDetails{
     private String confirmpassword;
     @Column(name = "Gender")
     private String Gender;
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Appointment> appointments = new ArrayList<>();
+
+
+    @ManyToOne
+    @JoinColumn(name = "docteur_id")
+    private Docteur docteur;    
+
+    @Column(name = "enabled")
+    private boolean enabled = false;
+
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;    
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled; 
+    }
 
     public String getUsername() {
         return username;
@@ -40,11 +61,9 @@ public class Customer implements UserDetails{
     public void setUsername(String username) {
         this.username = username;
     }
-
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -52,11 +71,9 @@ public class Customer implements UserDetails{
     public String getPassword() {
         return password;
     }
-
     public void setPassword(String password) {
         this.password = password;
     }
-
     public String getEmail() {
         return email;
     }
@@ -102,9 +119,6 @@ public class Customer implements UserDetails{
     public boolean isCredentialsNonExpired() {
         return true;
     }
-    
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+
+
 }

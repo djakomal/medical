@@ -70,6 +70,7 @@ public class WebSecurityConfiguration {
                                 "/docteur/login/**",
                                 "/error")
                         .permitAll()
+                        .requestMatchers("/code-activation").permitAll()
                         .requestMatchers("/api/meetings/authorize").permitAll()
                         .requestMatchers("/api/meetings/authorize/**").permitAll()
                         .requestMatchers("/api/meetings/callback").permitAll()

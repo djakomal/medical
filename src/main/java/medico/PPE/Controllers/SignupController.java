@@ -1,11 +1,9 @@
 package medico.PPE.Controllers;
 
-
+import lombok.extern.slf4j.Slf4j;          
 import medico.PPE.Models.Customer;
-
 import medico.PPE.Models.Docteur;
 import medico.PPE.Services.AuthService;
-import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.dtos.DocteurResponse;
 import medico.PPE.dtos.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,71 +12,84 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
+@Slf4j                                 
 @RestController
 @RequestMapping("/signup")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:5173"}) 
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:5173"})
 public class SignupController {
 
     private final AuthService authService;
 
-
     @Autowired
     public SignupController(AuthService authService) {
         this.authService = authService;
-
     }
+
+    // ── Customer ──────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<?> signupCustomer(@RequestBody SignupRequest signupRequest) {
-        Customer createdCustomer = authService.createCustomer(signupRequest);
-        if (createdCustomer != null) {
+        try {
+            Customer createdCustomer = authService.createCustomer(signupRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create customer");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to create customer: " + e.getMessage());
         }
     }
-
+    @PostMapping("/code-activation")
+    public ResponseEntity<?> activation(@RequestBody Map<String, String> activation) {
+        try {
+            this.authService.activation(activation);
+            log.info("Activation réussie");    // ✅ log maintenant disponible via @Slf4j
+            return ResponseEntity.ok("Compte activé avec succès");
+        } catch (RuntimeException e) {
+            log.error("Erreur activation : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
     @DeleteMapping("/delete/user/{id}")
-    public  void delete(@PathVariable Long id){
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         authService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+    @GetMapping
+    public ResponseEntity<List<Customer>> getAll() {
+        return ResponseEntity.ok(authService.getAll());
     }
 
-    @GetMapping("")
-    public List<Customer> getAll() {
-        return authService.getAll();
-
-    }
     @GetMapping("/get/user/{id}")
-    public Customer getCustomerById(@PathVariable Long id){
-        return  authService.getCustomerById(id);
+    public ResponseEntity<?> getCustomerById(@PathVariable Long id) {
+        Customer customer = authService.getCustomerById(id);
+        if (customer == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Customer introuvable");
+        }
+        return ResponseEntity.ok(customer);
     }
- // Docteur .................................................................
 
-
+    // ── Docteur ───────────────────────────────────────────────────────────
 
     @PostMapping("/docteur/add")
     public ResponseEntity<?> addDocteur(@RequestBody Docteur docteur) {
         try {
-            // Appeler le service pour créer un Docteur et obtenir le DocteurResponse
             DocteurResponse createdDocteurResponse = authService.createDocteur(docteur);
-
-            // Vérifier si la création a réussi
             return ResponseEntity.status(HttpStatus.CREATED).body(createdDocteurResponse);
         } catch (RuntimeException e) {
-            // Gérer les erreurs si la création échoue (ex : email déjà existant)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create docteur: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to create docteur: " + e.getMessage());
         }
     }
 
     @GetMapping("/docteur/all")
-    public List<Docteur> getAllDocteur(){
-        return authService.getAllDocteur();
+    public ResponseEntity<List<Docteur>> getAllDocteur() {
+        return ResponseEntity.ok(authService.getAllDocteur());
     }
 
     @DeleteMapping("/docteur/{id}")
-    public void deleteDocteur(@PathVariable Long id){
+    public ResponseEntity<Void> deleteDocteur(@PathVariable Long id) {
         authService.deleteDocteur(id);
+        return ResponseEntity.noContent().build();
     }
 }
