@@ -92,4 +92,19 @@ public class SignupController {
         authService.deleteDocteur(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
+    @PutMapping("/docteur/change-password")
+    public ResponseEntity<?> changePassword(
+        @RequestBody Map<String, String> payload,
+        @RequestHeader("Authorization") String authHeader) {
+    try {
+        String token = authHeader.replace("Bearer ", "");
+        authService.changePasswordDocteur(token, payload);
+        return ResponseEntity.ok("Mot de passe modifié avec succès");
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+}
 }

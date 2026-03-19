@@ -5,6 +5,7 @@ package medico.PPE.Repositories;
 // ========================================
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import medico.PPE.Models.Conseil;
@@ -13,6 +14,9 @@ import java.util.List;
 
 @Repository
 public interface ConseilRepository extends JpaRepository<Conseil, Long> {
+
+    @Query("SELECT DISTINCT c FROM Conseil c LEFT JOIN FETCH c.tags")
+    List<Conseil> findAllWithTags();
     
     List<Conseil> findByPublieTrue();
     

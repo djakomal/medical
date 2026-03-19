@@ -19,7 +19,6 @@ public class NotificationService {
     }
 
     public void send(OtpValidation validation) {
-        // ✅ Déterminer email et nom selon le type d'utilisateur
         String email;
         String nom;
 
@@ -34,9 +33,9 @@ public class NotificationService {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom("MEDICO");
         mailMessage.setTo(email);
-        mailMessage.setSubject("Your activation code");
+        mailMessage.setSubject("Code dactivation");
         mailMessage.setText(String.format(
-            "Hello %s, your activation code is: %s",
+            "Hello %s, votre code d'activation: %s",
             nom,
             validation.getCode()
         ));

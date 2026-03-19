@@ -27,4 +27,5 @@ public interface AuthService {
     List<Docteur> getAllDocteur();
 
     void deleteDocteur(Long Id);
+    void changePasswordDocteur(String token, Map<String, String> payload);
 }

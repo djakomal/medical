@@ -72,6 +72,9 @@ public class DocteurController {
                     .body(new ErrorResponse("Erreur lors de la connexion : " + e.getMessage()));
         }
     }
+    
+    
+    
     private static class ErrorResponse {
         private String error;
         public ErrorResponse(String error) { this.error = error; }

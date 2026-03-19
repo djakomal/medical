@@ -40,7 +40,7 @@ public class Conseil {
     @Column(nullable = true)
     private String imageUrl;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "conseil_tags", joinColumns = @JoinColumn(name = "conseil_id"))
     @Column(name = "tag")
     private List<String> tags;
