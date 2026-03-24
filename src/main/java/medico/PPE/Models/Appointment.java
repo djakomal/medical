@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
@@ -23,7 +24,8 @@ public class Appointment {
 	private String  status="pending";
 
 	@ManyToOne
-    @JoinColumn(name = "patient_id")  // Nom de la colonne dans la table appointments
+    @JoinColumn(name = "patient_id") 
+	 @JsonBackReference("customer-appointments") 
     private Customer patient;
 	
 	@ManyToOne(fetch=FetchType.EAGER)

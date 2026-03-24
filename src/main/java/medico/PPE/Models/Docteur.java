@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -60,7 +61,8 @@ public class Docteur implements UserDetails {
         private String photoUrl;
         @JsonIgnore
         @OneToMany(mappedBy = "docteur", cascade = CascadeType.ALL, 
-        orphanRemoval = true, fetch = FetchType.EAGER)
+        orphanRemoval = true, fetch = FetchType.LAZY)
+        @JsonManagedReference("customer-appointments")
         private List<Creneau> creneau;
 
         @Column(name = "cvurl")

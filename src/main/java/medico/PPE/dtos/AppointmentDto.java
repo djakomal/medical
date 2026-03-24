@@ -5,11 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import medico.PPE.Models.Creneau;
 import medico.PPE.Models.Docteur;
 
 @Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppointmentDto {
@@ -19,11 +23,10 @@ private  Long id;
 private String email;
 
 private String status;
-
+private Long patientId;
 
 private Long doctorId;
 private Long creneauId;
-
 private String regtime;
 
 private String firstname;

@@ -68,6 +68,7 @@ public class WebSecurityConfiguration {
                                 "/signup/**",
                                 "/login/**",
                                 "/docteur/login/**",
+                                "/ws/**",
                                 "/error")
                         .permitAll()
                         .requestMatchers("/code-activation").permitAll()
@@ -75,19 +76,13 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/meetings/authorize/**").permitAll()
                         .requestMatchers("/api/meetings/callback").permitAll()
                         .requestMatchers("/api/meetings/refresh-token").permitAll()
-
-                        // ============================================
-                        // APPOINTMENT ROUTES - Protégées
-                        // ============================================
-                        // .requestMatchers(HttpMethod.GET, "/appointment").hasAnyRole("USER", "DOCTOR")
-                        // .requestMatchers(HttpMethod.GET, "/appointment/get/**").hasAnyRole("USER", "DOCTOR")
-                        // .requestMatchers(HttpMethod.POST, "/appointment/add").hasRole("USER")
-                        // .requestMatchers(HttpMethod.DELETE, "/appointment/delete/**").hasAnyRole("USER", "DOCTOR")
-                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/validate").hasRole("DOCTOR")
-                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/reject").hasRole("DOCTOR")
-                        // .requestMatchers(HttpMethod.PUT, "/appointment/*/start").hasRole("DOCTOR")
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("api/conseils/**").permitAll()
                         .requestMatchers("api/publication/**").permitAll()
+                        .requestMatchers("/ws/**", "/ws/info/**").permitAll()
+                        .requestMatchers("api/appointment/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/signup/docteur/all").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/creneaux/**").permitAll()
 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
@@ -109,27 +104,34 @@ public class WebSecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Origines autorisées
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4200"));
-
-        // Méthodes HTTP autorisées
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Headers autorisés
-        configuration.setAllowedHeaders(List.of("*"));
-
-        // Credentials autorisés
+    
+        // ✅ Origins explicites (obligatoire avec allowCredentials=true)
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:4200",
+            "http://localhost:5173"
+        ));
+    
+        configuration.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+    
+        configuration.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "Accept",
+            "Origin"
+        ));
+    
+        // ✅ CRUCIAL — doit être true
         configuration.setAllowCredentials(true);
-
-        // Max age
         configuration.setMaxAge(3600L);
-
+    
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // ✅ Couvre aussi /ws/info, /ws/iframe etc.
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)

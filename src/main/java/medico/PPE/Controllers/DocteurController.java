@@ -1,6 +1,7 @@
 package medico.PPE.Controllers;
 
 import medico.PPE.Services.AuthService;
+import medico.PPE.Services.CustomUserDetails;
 import medico.PPE.Services.DoctorateServiceImpl;
 import medico.PPE.Services.UserDetailsServiceImpl;
 import medico.PPE.dtos.LoginRequest;
@@ -19,6 +20,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 @Slf4j   
 @RestController                             
 @RequestMapping("/docteur")
@@ -45,33 +47,38 @@ public class DocteurController {
         this.authService = authService;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        try {
-            String normalizedUsername = loginRequest.getUsername().trim().toLowerCase();
+@PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    try {
+        String normalizedUsername = loginRequest.getUsername().trim().toLowerCase();
 
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(normalizedUsername, loginRequest.getPassword())
-            );
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(normalizedUsername, loginRequest.getPassword())
+        );
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(normalizedUsername);
-            Long userId = userDetailsService.getUserIdByUsername(normalizedUsername);
-            String jwt = jwtUtil.generateToken(normalizedUsername, userId);
+        
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getId();
+        String role = userDetails.getAuthorities().stream()
+            .findFirst()
+            .map(a -> a.getAuthority())
+            .orElse("ROLE_DOCTOR");
 
-            return ResponseEntity.ok(new LoginResponse(jwt, userId));
+        String jwt = jwtUtil.generateToken(normalizedUsername, userId, role); 
 
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("Email ou mot de passe incorrect"));
+        return ResponseEntity.ok(new LoginResponse(jwt, userId, role)); 
 
-        } catch (DisabledException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse("Compte non activé. Vérifiez votre email."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Erreur lors de la connexion : " + e.getMessage()));
-        }
+    } catch (BadCredentialsException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Email ou mot de passe incorrect"));
+    } catch (DisabledException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("Compte non activé. Vérifiez votre email."));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Erreur lors de la connexion : " + e.getMessage()));
     }
+}
     
     
     

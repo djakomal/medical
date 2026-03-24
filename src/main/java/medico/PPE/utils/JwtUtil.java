@@ -18,11 +18,8 @@ import java.util.function.Function;
 public class JwtUtil {
 
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A713474375367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
-    
-    // Durée de vie du token (30 minutes)
-    private static final long TOKEN_VALIDITY =  86400000;
-    
-    // Seuil pour le rafraîchissement automatique (5 minutes avant expiration)
+
+    private static final long TOKEN_VALIDITY = 86400000;
     private static final long REFRESH_THRESHOLD = 1000 * 60 * 5;
 
     public String extractUsername(String token) {
@@ -33,13 +30,27 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    // ✅ NOUVEAU : extraire le rôle depuis le token
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    // ✅ NOUVEAU : extraire le userId depuis le token
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
+        return Jwts.parser()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private Boolean isTokenExpired(String token) {
@@ -51,15 +62,16 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(String username,Long userId) {
+    // ✅ MODIFIÉ : generateToken accepte maintenant le rôle
+    public String generateToken(String username, Long userId, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        return createToken(claims, username,userId);
+        claims.put("role", role); // ✅ "ROLE_DOCTOR" ou "ROLE_CUSTOMER"
+        return createToken(claims, username);
     }
 
-    private String createToken(Map<String, Object> claims, String userName ,Long userId) {
-        return Jwts
-                .builder()
+    private String createToken(Map<String, Object> claims, String userName) {
+        return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -73,24 +85,22 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Vérifier si le token doit être rafraîchi (moins de 5 minutes avant expiration)
     public boolean shouldRefreshToken(String token) {
         try {
             Date expiration = extractExpiration(token);
             long timeUntilExpiration = expiration.getTime() - System.currentTimeMillis();
-            // Rafraîchir si le token expire dans moins de 5 minutes mais n'est pas encore expiré
             return timeUntilExpiration > 0 && timeUntilExpiration < REFRESH_THRESHOLD;
         } catch (Exception e) {
             return false;
         }
     }
 
-    // Rafraîchir le token en gardant le même username
     public String refreshToken(String oldToken) {
         try {
             String username = extractUsername(oldToken);
-            Long userId = null;
-            return generateToken(username,userId);
+            Long userId = extractClaim(oldToken, claims -> claims.get("userId", Long.class));
+            String role = extractRole(oldToken); 
+            return generateToken(username, userId, role);
         } catch (Exception e) {
             throw new RuntimeException("Unable to refresh token", e);
         }

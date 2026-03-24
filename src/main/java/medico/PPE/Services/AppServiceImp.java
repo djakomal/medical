@@ -1,9 +1,11 @@
 package medico.PPE.Services;
 import medico.PPE.Models.Appointment;
 import medico.PPE.Models.Creneau;
+import medico.PPE.Models.Customer;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.AppointmentRepository;
 import medico.PPE.Repositories.CreneauRepository;
+import medico.PPE.Repositories.CustomerRepository;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.dtos.AppointmentDto;
 import org.springframework.beans.BeanUtils;
@@ -16,29 +18,35 @@ public class AppServiceImp implements AppService {
 
     
     private final  AppointmentRepository appointmentRepository;
-    
+    private final CustomerRepository customerRepository;
     private final DoctorateRepository doctorateRepository;
     public final CreneauRepository creneauRepository;
 
     @Autowired
-    public AppServiceImp(AppointmentRepository appointmentRepository, DoctorateRepository doctorateRepository, CreneauRepository creneauRepository) {
+    public AppServiceImp(AppointmentRepository appointmentRepository, DoctorateRepository doctorateRepository, CreneauRepository creneauRepository,CustomerRepository customerRepository) {
         this.appointmentRepository = appointmentRepository;
         this.doctorateRepository = doctorateRepository;
         this.creneauRepository = creneauRepository;
+        this.customerRepository=customerRepository;
     }
 
     @Override
     public List<Appointment> getAll() {
-        return appointmentRepository.findAllWithDoctor();  //  Évite le N+1 problem
+        return appointmentRepository.findAllWithDoctor();  
     }
-
     @Override
     public Appointment add(AppointmentDto dto) {
         Appointment appointment = new Appointment();
+        if (dto.getPatientId() != null) {
+        Customer patient = customerRepository.findById(dto.getPatientId())
+            .orElseThrow(() -> new RuntimeException("Patient non trouvé avec ID: " + dto.getPatientId()));
+        appointment.setPatient(patient);
+        }
+    
         appointment.setFirstname(dto.getFirstname());
         appointment.setLastname(dto.getLastname());
         appointment.setEmail(dto.getEmail());
-        appointment.setBirthdate(dto.getBirthdate()); // ou preferredDate selon usage
+        appointment.setBirthdate(dto.getBirthdate()); 
         appointment.setPreferredTime(dto.getPreferredTime());
         appointment.setPreferredDate(dto.getPreferredDate());
         appointment.setGender(dto.getGender());

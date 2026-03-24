@@ -6,7 +6,6 @@ import medico.PPE.Repositories.CustomerRepository;
 import medico.PPE.Repositories.DoctorateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,11 +16,8 @@ import java.util.Optional;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private DoctorateRepository doctorateRepository;
+    @Autowired private CustomerRepository customerRepository;
+    @Autowired private DoctorateRepository doctorateRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -29,112 +25,67 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("Le nom d'utilisateur ne peut pas être vide");
         }
 
-        String normalizedUsername = username.trim().toLowerCase();
-        System.out.println("🔍 Recherche utilisateur: " + normalizedUsername);
+        String n = username.trim().toLowerCase();
 
-        // 1 Chercher parmi les customers
-        var customer = customerRepository.findByUsername(normalizedUsername);
+        // ✅ 1 seule requête — Customer avec ID inclus
+        Optional<Customer> customer = customerRepository.findByUsername(n);
         if (customer.isPresent()) {
-            System.out.println(" Customer trouvé: " + customer.get().getUsername());
             Customer c = customer.get();
-            return new User(
+            return new CustomUserDetails(
                 c.getUsername(),
                 c.getPassword(),
-                c.isEnabled(),          // ← enabled réel
-                true,                   // accountNonExpired
-                true,                   // credentialsNonExpired
-                true,                   // accountNonLocked
-                List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
+                c.isEnabled(),
+                c.getId(),
+                List.of(new SimpleGrantedAuthority("ROLE_PATIENT"))
             );
         }
 
-        // 2 Chercher parmi les docteurs
-        var docteur = doctorateRepository.findByUsername(normalizedUsername);
+        // ✅ 1 seule requête — Docteur avec ID inclus
+        Optional<Docteur> docteur = doctorateRepository.findByUsername(n);
         if (docteur.isPresent()) {
-            System.out.println(" Docteur trouvé: " + docteur.get().getUsername());
             Docteur d = docteur.get();
-            return new User(
+            return new CustomUserDetails(
                 d.getUsername(),
                 d.getPassword(),
-                d.isEnabled(),          // ← enabled réel
-                true, true, true,
-                List.of(new SimpleGrantedAuthority("ROLE_DOCTEUR"))
+                d.isEnabled(),
+                d.getId(),
+                List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
             );
         }
 
-        // 3 Aucun utilisateur trouvé
-        System.out.println("❌ Aucun utilisateur trouvé pour: " + normalizedUsername);
-        throw new UsernameNotFoundException("Aucun utilisateur trouvé avec l'identifiant : " + username);
+        throw new UsernameNotFoundException("Aucun utilisateur trouvé : " + username);
     }
 
-    /**
-     * Vérifie si un username existe déjà (Customer OU Docteur)
-     */
     public boolean existsByUsername(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            return false;
-        }
-        String normalizedUsername = username.trim().toLowerCase();
-        return customerRepository.existsByUsername(normalizedUsername) ||
-               doctorateRepository.existsByUsername(normalizedUsername);
+        if (username == null || username.trim().isEmpty()) return false;
+        String n = username.trim().toLowerCase();
+        return customerRepository.existsByUsername(n) ||
+               doctorateRepository.existsByUsername(n);
     }
 
-    /**
-     * Vérifie si un email existe déjà (Customer OU Docteur)
-     */
     public boolean existsByEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return false;
-        }
-        String normalizedEmail = email.trim().toLowerCase();
-        return customerRepository.existsByEmail(normalizedEmail) ||
-               doctorateRepository.existsByEmail(normalizedEmail);
+        if (email == null || email.trim().isEmpty()) return false;
+        String n = email.trim().toLowerCase();
+        return customerRepository.existsByEmail(n) ||
+               doctorateRepository.existsByEmail(n);
     }
 
-    /**
-     * Détermine le type d'utilisateur
-     */
     public String getUserType(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            return null;
-        }
-        String normalizedUsername = username.trim().toLowerCase();
-        if (customerRepository.findByUsername(normalizedUsername).isPresent()) {
-            return "CUSTOMER";
-        } else if (doctorateRepository.findByUsername(normalizedUsername).isPresent()) {
-            return "DOCTEUR";
-        }
+        if (username == null || username.trim().isEmpty()) return null;
+        String n = username.trim().toLowerCase();
+        if (customerRepository.findByUsername(n).isPresent()) return "CUSTOMER";
+        if (doctorateRepository.findByUsername(n).isPresent()) return "DOCTEUR";
         return null;
     }
- /**
-     * Récupère l'ID utilisateur par username
-     */
+
+    // Gardé pour compatibilité avec d'autres parties du code
     public Long getUserIdByUsername(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            return null;
-        }
-
-        String normalizedUsername = username.trim().toLowerCase();
-        System.out.println("🔍 Recherche ID pour username: " + normalizedUsername);
-
-        // Chercher d'abord dans Customer
-        Optional<Customer> customer = customerRepository.findByUsername(normalizedUsername);
-        if (customer.isPresent()) {
-            Long id = customer.get().getId();
-            System.out.println("✅ ID Customer trouvé: " + id);
-            return id;
-        }
-
-        // Chercher ensuite dans Docteur
-        Optional<Docteur> docteur = doctorateRepository.findByUsername(normalizedUsername);
-        if (docteur.isPresent()) {
-            Long id = docteur.get().getId();
-            System.out.println("✅ ID Docteur trouvé: " + id);
-            return id;
-        }
-
-        System.out.println("❌ Aucun ID trouvé pour username: " + normalizedUsername);
+        if (username == null || username.trim().isEmpty()) return null;
+        String n = username.trim().toLowerCase();
+        Optional<Customer> c = customerRepository.findByUsername(n);
+        if (c.isPresent()) return c.get().getId();
+        Optional<Docteur> d = doctorateRepository.findByUsername(n);
+        if (d.isPresent()) return d.get().getId();
         return null;
     }
-
 }

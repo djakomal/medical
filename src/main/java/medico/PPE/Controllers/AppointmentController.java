@@ -59,11 +59,11 @@ public class AppointmentController {
     @GetMapping("")
     public ResponseEntity<?> getAll() {
         try {
-            System.out.println("📋 GET /appointment - Récupération des rendez-vous");
+            System.out.println(" GET /appointment - Récupération des rendez-vous");
             
             if (isDoctor()) {
                 Long doctorId = getDocteurIdFromToken();
-                System.out.println("👨‍⚕️ Docteur ID: " + doctorId + " - Ses rendez-vous uniquement");
+                System.out.println("👨Docteur ID: " + doctorId + " - Ses rendez-vous uniquement");
                 
                 List<Appointment> appointments = appService.getAppointmentByDoctor(doctorId); 
                 System.out.println(" " + appointments.size() + " rendez-vous trouvés");
