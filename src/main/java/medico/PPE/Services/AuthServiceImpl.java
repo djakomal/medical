@@ -14,6 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.jsonwebtoken.io.IOException;
+import jakarta.persistence.criteria.Path;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -207,6 +212,24 @@ public void changePasswordDocteur(String token, Map<String, String> payload) {
 
     docteur.setPassword(passwordEncoder.encode(nouveauMotDePasse));
     doctorateRepository.save(docteur);
+}
+
+// recuperer l'image d'un docteur 
+@Override
+public byte[] getDocteurImage(Long id) {
+    Docteur docteur = doctorateRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Docteur introuvable"));
+
+    if (docteur.getPhotoUrl() == null) {
+        throw new RuntimeException("Ce docteur n'a pas d'image");
+    }
+
+    try {
+        java.nio.file.Path path = java.nio.file.Paths.get(docteur.getPhotoUrl());
+        return java.nio.file.Files.readAllBytes(path);
+    } catch (java.io.IOException e) {
+        throw new RuntimeException("Impossible de lire l'image : " + e.getMessage());
+    }
 }
 }
 

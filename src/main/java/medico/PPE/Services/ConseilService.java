@@ -67,6 +67,9 @@
             conseil.setTags(conseilData.getTags());
             conseil.setCategorie(conseilData.getCategorie());
             conseil.setPublie(conseilData.getPublie());
+            if (conseilData.getDatePublication() != null) {
+                conseil.setDatePublication(conseilData.getDatePublication());
+            }
             
             return conseilRepository.save(conseil);
         }

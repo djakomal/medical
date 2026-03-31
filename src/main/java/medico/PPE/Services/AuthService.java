@@ -28,4 +28,7 @@ public interface AuthService {
 
     void deleteDocteur(Long Id);
     void changePasswordDocteur(String token, Map<String, String> payload);
+
+    byte[] getDocteurImage(Long id);
+
 }

@@ -1,94 +1,96 @@
 package medico.PPE.Services;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import medico.PPE.Models.Publication;
-import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.Repositories.PublicationRepository;
+
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class PublicationService {
-    
-    private final PublicationRepository publicationRepository;
 
+    private final PublicationRepository publicationRepository;
     private final DoctorateRepository docteurRepository;
 
     @Autowired
     public PublicationService(
-        DoctorateRepository docteurRepository,
-         PublicationRepository publicationRepository) {
-        this.docteurRepository = docteurRepository;
+            DoctorateRepository docteurRepository,
+            PublicationRepository publicationRepository) {
+        this.docteurRepository    = docteurRepository;
         this.publicationRepository = publicationRepository;
     }
-    
-    // Créer un nouveau conseil
 
+    // ── Créer ──────────────────────────────────────────────
     public Publication creerPublication(Publication publication) {
-
-        // Docteur docteur = docteurRepository.findByUsername(docteurId)
-        // .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
-        // Publication publication = convertToEntity(publication);
-        // publication.setDocteur(docteur);
-
-        Publication savedPublication = publicationRepository.save(publication);
-        return savedPublication;
+        return publicationRepository.save(publication);
     }
 
-        // Récupérer tous les conseils
+    // ── Lire tous ──────────────────────────────────────────
     public List<Publication> getAllPublication() {
-        return publicationRepository.findAll().stream()
+        return publicationRepository.findAll()
+                .stream()
                 .collect(Collectors.toList());
     }
 
-    // Récupérer les publications publiées
+    // ── Publiés seulement ──────────────────────────────────
     public List<Publication> getPublicationPublies() {
-        return publicationRepository.findByPublieTrue().stream()
+        return publicationRepository.findByPublieTrue()
+                .stream()
                 .collect(Collectors.toList());
     }
-    
-    // Récupérer un conseil par ID
+
+    // ── Lire par ID ────────────────────────────────────────
     public Publication getPublicationById(Long id) {
         Publication publication = publicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publication non trouvée avec l'ID: " + id));
-        
-        // Incrémenter le nombre de vues
-        publicationRepository.save(publication);
-        
-        return publication;
+                .orElseThrow(() -> new RuntimeException(
+                        "Publication non trouvée avec l'ID: " + id));
+        return publicationRepository.save(publication);
     }
-    
-    // // Mettre à jour un conseil
-    // public Publication updatePublication(Long id, Publication publication) {
-    //     Publication publication = publicationRepository.findById(id)
-    //             .orElseThrow(() -> new RuntimeException("Publication non trouvée avec l'ID: " + id));
-    //     publication.setTitre(publication.getTitre());
-    //     publication.setContenu(publication.getContenu());
-    //     publication.setDatePublication(publication.getDatePublication());
-    //     publication.setImageUrl(publication.getImageUrl())
-    //     Publication updatedPublication = publicationRepository.save(publication);
-    //     return updatedPublication;
-    // }
-    
-    // Publier/Dépublier un conseil
+
+    // ── Mettre à jour ──────────────────────────────────────
+    public Publication updatePublication(Long id, Publication publicationData) {
+        // 1. Charger l'entité existante (nom différent pour éviter la collision)
+        Publication existing = publicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Publication non trouvée avec l'ID: " + id));
+
+        // 2. Appliquer les modifications
+        existing.setTitre(publicationData.getTitre());
+        existing.setContenu(publicationData.getContenu());
+        existing.setImageUrl(publicationData.getImageUrl());
+
+        // 3. Conserver la date existante si le frontend n'en envoie pas
+        if (publicationData.getDatePublication() != null) {
+            existing.setDatePublication(publicationData.getDatePublication());
+        } else if (existing.getDatePublication() == null) {
+              existing.setDatePublication(LocalDate.now());
+        }
+
+        return publicationRepository.save(existing);
+    }
+
+    // ── Toggle publish ─────────────────────────────────────
     public Publication togglePublish(Long id) {
         Publication publication = publicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publication non trouvée avec l'ID: " + id));
+                .orElseThrow(() -> new RuntimeException(
+                        "Publication non trouvée avec l'ID: " + id));
         publication.setPublie(!publication.getPublie());
-        Publication updatedPublication = publicationRepository.save(publication);
-        return updatedPublication;
+        return publicationRepository.save(publication);
     }
-    
-    // Supprimer un conseil
+
+    // ── Supprimer ──────────────────────────────────────────
     public void deletePublication(Long id) {
         if (!publicationRepository.existsById(id)) {
             throw new RuntimeException("Publication non trouvée avec l'ID: " + id);
         }
         publicationRepository.deleteById(id);
     }
-    
 }

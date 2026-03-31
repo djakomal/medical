@@ -16,6 +16,9 @@ public class AppointementTypeServiceImpl implements AppointementTypeService {
     public List<AppointementType> getAllAppointments() {
         return repository.findAll();
     }
+
+    // recuperer la liste des rendez pour pour le docteur conecter 
+
     public AppointementType getAppointmentById(Long id) {
         return repository.findById(id).orElse(null);
     }
