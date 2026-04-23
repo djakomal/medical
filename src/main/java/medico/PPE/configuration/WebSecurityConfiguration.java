@@ -6,8 +6,6 @@ import medico.PPE.Services.ZoomMeetingService;
 import medico.PPE.filters.CustomerJwtRequestFilter;
 import medico.PPE.filters.DocteurJwtRequestFilter;
 import medico.PPE.jwt.CustomerServiceImpl;
-
-import org.mapstruct.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +18,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,13 +43,14 @@ public class WebSecurityConfiguration {
     @Autowired
     public WebSecurityConfiguration(DoctorateServiceImpl docteurService,
             CustomerServiceImpl customerservice, UserDetailsServiceImpl userDetailsServiceImpl,
-            CustomerJwtRequestFilter customerFilter, DocteurJwtRequestFilter docteurFilter,ZoomMeetingService zoomservice) {
+            CustomerJwtRequestFilter customerFilter, DocteurJwtRequestFilter docteurFilter,
+            ZoomMeetingService zoomservice) {
         this.userDetailsServiceImpl = userDetailsServiceImpl;
         this.customerFilter = customerFilter;
         this.docteurFilter = docteurFilter;
         this.docteurService = docteurService;
         this.customerservice = customerservice;
-        this.zoomservice=zoomservice;
+        this.zoomservice = zoomservice;
     }
 
     @Bean
@@ -72,10 +70,10 @@ public class WebSecurityConfiguration {
                                 "/error")
                         .permitAll()
                         .requestMatchers("/code-activation").permitAll()
+                        .requestMatchers("/api/meetings/**").permitAll()
                         .requestMatchers("/api/meetings/authorize").permitAll()
-                        .requestMatchers("/api/meetings/authorize/**").permitAll()
                         .requestMatchers("/api/meetings/callback").permitAll()
-                        .requestMatchers("/api/meetings/refresh-token").permitAll()
+                        .requestMatchers("/api/meetings/me").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("api/conseils/**").permitAll()
                         .requestMatchers("api/publication/**").permitAll()
@@ -83,6 +81,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers("api/appointment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/signup/docteur/all").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/creneaux/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/creneaux/**").authenticated()
 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
@@ -98,37 +97,30 @@ public class WebSecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * ✅ Configuration CORS explicite et sécurisée
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-    
-        // ✅ Origins explicites (obligatoire avec allowCredentials=true)
+
         configuration.setAllowedOrigins(List.of(
-            "http://localhost:4200",
-            "http://localhost:5173"
-        ));
-    
+                "http://localhost:4200",
+                "http://localhost:5173"));
+
         configuration.setAllowedMethods(List.of(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-    
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
         configuration.setAllowedHeaders(List.of(
-            "Authorization",
-            "Content-Type",
-            "X-Requested-With",
-            "Accept",
-            "Origin"
-        ));
-    
-        // ✅ CRUCIAL — doit être true
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin"));
+
+        //  CRUCIAL — doit être true
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-    
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // ✅ Couvre aussi /ws/info, /ws/iframe etc.
+        //  Couvre aussi /ws/info, /ws/iframe etc.
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
@@ -140,12 +132,14 @@ public class WebSecurityConfiguration {
                 .and()
                 .build();
     }
-   @Bean
+
+    @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsServiceImpl);
         provider.setPasswordEncoder(passwordEncoder());
-        // ✅ IMPORTANT : Désactiver la gestion des exceptions pour éviter les retentatives
+        // ✅ IMPORTANT : Désactiver la gestion des exceptions pour éviter les
+        // retentatives
         provider.setHideUserNotFoundExceptions(false);
         return provider;
     }

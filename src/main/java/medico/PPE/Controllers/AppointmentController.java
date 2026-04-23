@@ -11,282 +11,263 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import io.jsonwebtoken.lang.Collections;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Controller
-@RestController
+@RestController  // ✅ Un seul, @Controller retiré
 @RequestMapping("/appointment")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:5173"}) // ✅ Angular + React
 public class AppointmentController {
 
     @Autowired
     private AppService appService;
-    
+
     @Autowired
     private DoctorateRepository doctorateRepository;
 
-    //  Récupérer l'ID du docteur connecté
+    // ── Helpers privés ───────────────────────────────────────────
+
     private Long getDocteurIdFromToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
         Docteur docteur = doctorateRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
-        
+                .orElseThrow(() -> new RuntimeException("Docteur non trouvé: " + username));
         return docteur.getId();
     }
-    
-    //  Vérifier si l'utilisateur est un docteur
+
     private boolean isDoctor() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-        
-        return authentication.getAuthorities().stream()
-            .anyMatch(a -> "ROLE_DOCTOR".equals(a.getAuthority()));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_DOCTOR".equals(a.getAuthority()));
     }
 
-    //  RÉCUPÉRER TOUS LES RENDEZ-VOUS (filtré par docteur si c'est un docteur)
+    // ── GET tous les rendez-vous ─────────────────────────────────
+
     @GetMapping("")
     public ResponseEntity<?> getAll() {
         try {
-            System.out.println(" GET /appointment - Récupération des rendez-vous");
-            
             if (isDoctor()) {
                 Long doctorId = getDocteurIdFromToken();
-                System.out.println("👨Docteur ID: " + doctorId + " - Ses rendez-vous uniquement");
-                
-                List<Appointment> appointments = appService.getAppointmentByDoctor(doctorId); 
-                System.out.println(" " + appointments.size() + " rendez-vous trouvés");
-                
-                return ResponseEntity.ok(appointments);
-            } else {
-                System.out.println("👤 User - Tous les rendez-vous");
-                
-                List<Appointment> appointments = appService.getAll();
-                System.out.println(" " + appointments.size() + " rendez-vous trouvés");
-                
-                return ResponseEntity.ok(appointments);
+                return ResponseEntity.ok(appService.getAppointmentByDoctor(doctorId));
             }
+            return ResponseEntity.ok(appService.getAll());
         } catch (Exception e) {
-            System.err.println("❌ Erreur: " + e.getMessage());
-            e.printStackTrace();
-            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erreur lors de la récupération des rendez-vous: " + e.getMessage()));
+                    .body(Map.of("message", "Erreur: " + e.getMessage()));
         }
     }
 
-    //  AJOUTER UN RENDEZ-VOUS
+    // ── POST ajouter un rendez-vous ──────────────────────────────
+
     @PostMapping("/add")
     public ResponseEntity<?> add(@RequestBody AppointmentDto dto) {
         try {
-            System.out.println("➕ Ajout d'un nouveau rendez-vous");
-            
             Appointment saved = appService.add(dto);
-            System.out.println(" Rendez-vous créé - ID: " + saved.getId());
-            
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
-            System.err.println("❌ Données invalides: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", e.getMessage()));
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            System.err.println("❌ Erreur: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erreur lors de l'ajout du rendez-vous"));
+                    .body(Map.of("message", "Erreur lors de l'ajout: " + e.getMessage()));
         }
     }
 
-    //  RÉCUPÉRER UN RENDEZ-VOUS PAR ID
-    @GetMapping("/get/{Id}")
-    public ResponseEntity<?> getAppById(@PathVariable Long Id) {
+    // ── GET par ID ───────────────────────────────────────────────
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<?> getAppById(@PathVariable Long id) {
         try {
-            Appointment appointment = appService.getAppById(Id);
-            
+            Appointment appointment = appService.getAppById(id);
             if (appointment == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "Rendez-vous non trouvé"));
+                        .body(Map.of("message", "Rendez-vous non trouvé"));
             }
-            
-            //  Vérifier que le docteur a accès à CE rendez-vous
             if (isDoctor()) {
                 Long docteurId = getDocteurIdFromToken();
-                
-                if (appointment.getDoctor() != null && 
-                    !appointment.getDoctor().getId().equals(docteurId)) {
-                    System.out.println("❌ Docteur " + docteurId + " n'a pas accès au rendez-vous " + Id);
+                if (appointment.getDoctor() != null &&
+                        !appointment.getDoctor().getId().equals(docteurId)) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("message", "Accès refusé à ce rendez-vous"));
+                            .body(Map.of("message", "Accès refusé"));
                 }
             }
-            
             return ResponseEntity.ok(appointment);
         } catch (Exception e) {
-            System.err.println("❌ Erreur: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erreur lors de la récupération"));
+                    .body(Map.of("message", "Erreur: " + e.getMessage()));
         }
     }
 
-    //  SUPPRIMER UN RENDEZ-VOUS
-    @DeleteMapping("/delete/{Id}")
-    public ResponseEntity<?> delete(@PathVariable Long Id) {
+    // ── DELETE supprimer ─────────────────────────────────────────
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
-            System.out.println("🗑️ Suppression du rendez-vous ID: " + Id);
-            
-            //  Vérifier que le docteur peut supprimer CE rendez-vous
             if (isDoctor()) {
-                Appointment appointment = appService.getAppById(Id);
-                
+                Appointment appointment = appService.getAppById(id);
                 if (appointment != null && appointment.getDoctor() != null) {
                     Long docteurId = getDocteurIdFromToken();
-                    
                     if (!appointment.getDoctor().getId().equals(docteurId)) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(Map.of("message", "Vous ne pouvez pas supprimer ce rendez-vous"));
+                                .body(Map.of("message", "Suppression non autorisée"));
                     }
                 }
             }
-            
-            appService.delete(Id);
-            System.out.println(" Rendez-vous supprimé");
-            
+            appService.delete(id);
             return ResponseEntity.ok(Map.of("message", "Rendez-vous supprimé avec succès"));
         } catch (Exception e) {
-            System.err.println("❌ Erreur: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erreur lors de la suppression"));
+                    .body(Map.of("message", "Erreur: " + e.getMessage()));
         }
     }
 
+    // ── GET rendez-vous d'un patient ─────────────────────────────
 
-    // Dans votre AppointmentController
     @GetMapping("/patient/{patientId}")
-     public ResponseEntity<?> getAppointmentsByPatient(@PathVariable Long patientId) {
-     Appointment appointments = appService.getAppointmentsByPatient(patientId);
-    
-    if (appointments == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Collections.emptyList());
+    public ResponseEntity<?> getAppointmentsByPatient(@PathVariable Long patientId) {
+        Appointment appointment = appService.getAppointmentsByPatient(patientId);
+        if (appointment == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
+        }
+        return ResponseEntity.ok(appointment);
     }
-    
-    return ResponseEntity.ok(appointments);
-}
 
     @GetMapping("/patient/all/{patientId}")
-    public ResponseEntity<?> getAllAppointmentsByPatient(@PathVariable Long patientId) {   
-    List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
-    return ResponseEntity.ok(appointments);
+    public ResponseEntity<?> getAllAppointmentsByPatient(@PathVariable Long patientId) {
+        List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
+        return ResponseEntity.ok(appointments);
     }
 
-    //  VALIDER UN RENDEZ-VOUS
+    // ── PUT valider ──────────────────────────────────────────────
+
     @PutMapping("/{id}/validate")
     public ResponseEntity<Map<String, Object>> validateAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            //  Vérifier les permissions
             if (isDoctor()) {
-                Long docteurId = getDocteurIdFromToken();
                 Appointment appointment = appService.getAppById(id);
-                
                 if (appointment == null) {
                     response.put("success", false);
                     response.put("message", "Rendez-vous non trouvé");
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
-                
-                if (appointment.getDoctor() != null && 
-                    !appointment.getDoctor().getId().equals(docteurId)) {
+                Long docteurId = getDocteurIdFromToken();
+                if (appointment.getDoctor() != null &&
+                        !appointment.getDoctor().getId().equals(docteurId)) {
                     response.put("success", false);
-                    response.put("message", "Vous ne pouvez pas valider ce rendez-vous");
+                    response.put("message", "Validation non autorisée");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
                 }
             }
-            
             Appointment validated = appService.validateAppointment(id);
             response.put("success", true);
             response.put("message", "Rendez-vous validé avec succès");
             response.put("appointment", validated);
-            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erreur: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-    //  REJETER UN RENDEZ-VOUS
+    // ── PUT rejeter ──────────────────────────────────────────────
+
     @PutMapping("/{id}/reject")
     public ResponseEntity<Map<String, Object>> rejectAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            //  Vérifier les permissions
             if (isDoctor()) {
-                Long docteurId = getDocteurIdFromToken();
                 Appointment appointment = appService.getAppById(id);
-                
-                if (appointment != null && appointment.getDoctor() != null && 
-                    !appointment.getDoctor().getId().equals(docteurId)) {
+                Long docteurId = getDocteurIdFromToken();
+                if (appointment != null && appointment.getDoctor() != null &&
+                        !appointment.getDoctor().getId().equals(docteurId)) {
                     response.put("success", false);
-                    response.put("message", "Vous ne pouvez pas rejeter ce rendez-vous");
+                    response.put("message", "Rejet non autorisé");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
                 }
             }
-            
             Appointment rejected = appService.rejectAppointment(id);
             response.put("success", true);
             response.put("message", "Rendez-vous rejeté avec succès");
             response.put("appointment", rejected);
-            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erreur: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-    //  DÉMARRER UN RENDEZ-VOUS
+    // ── PUT démarrer ─────────────────────────────────────────────
+
     @PutMapping("/{id}/start")
     public ResponseEntity<Map<String, Object>> startAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            //  Vérifier les permissions
             if (isDoctor()) {
-                Long docteurId = getDocteurIdFromToken();
                 Appointment appointment = appService.getAppById(id);
-                
-                if (appointment != null && appointment.getDoctor() != null && 
-                    !appointment.getDoctor().getId().equals(docteurId)) {
+                Long docteurId = getDocteurIdFromToken();
+                if (appointment != null && appointment.getDoctor() != null &&
+                        !appointment.getDoctor().getId().equals(docteurId)) {
                     response.put("success", false);
-                    response.put("message", "Vous ne pouvez pas démarrer ce rendez-vous");
+                    response.put("message", "Démarrage non autorisé");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
                 }
             }
-            
             Appointment started = appService.startAppointment(id);
             response.put("success", true);
             response.put("message", "Rendez-vous débuté avec succès");
             response.put("joinUrl", started.getZoomJoinUrl());
             response.put("appointment", started);
-            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erreur: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    // ── PUT mettre à jour (Zoom + statut) ────────────────────────
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateAppointment(@PathVariable Long id, @RequestBody AppointmentDto dto) {
+        try {
+            Appointment existing = appService.getAppById(id);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Rendez-vous non trouvé avec ID: " + id));
+            }
+
+            // Mise à jour partielle — seuls les champs non null sont modifiés
+            if (dto.getStatus() != null)        existing.setStatus(dto.getStatus());
+            if (dto.getMeetingUrl() != null)    existing.setZoomJoinUrl(dto.getMeetingUrl());
+            if (dto.getZoomMeetingId() != null) existing.setZoomMeetingId(dto.getZoomMeetingId());
+            if (dto.getZoomStartUrl() != null)  existing.setZoomStartUrl(dto.getZoomStartUrl());
+            if (dto.getZoomPassword() != null)  existing.setZoomPassword(dto.getZoomPassword());
+
+            Appointment updated = appService.update(existing);
+            return ResponseEntity.ok(updated);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur mise à jour: " + e.getMessage()));
+        }
+    }
+
+@GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<?> getAppointmentsByDoctor(@PathVariable Long doctorId) {
+        try {
+            List<Appointment> appointments = appService.getAppointmentByDoctor(doctorId);
+            return ResponseEntity.ok(appointments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur: " + e.getMessage()));
+        }
+}
+
 }

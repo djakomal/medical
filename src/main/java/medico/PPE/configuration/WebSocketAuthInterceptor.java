@@ -25,16 +25,13 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 UsernamePasswordAuthenticationToken user =
                     new UsernamePasswordAuthenticationToken("user", null, List.of());
-
                 accessor.setUser(user);
             }
         }
-
         return message;
     }
 }

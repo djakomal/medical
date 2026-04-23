@@ -198,7 +198,7 @@ public class CreneauController {
         }
     }
     
-    //  RÉCUPÉRER LES CRÉNEAUX D'UN DOCTEUR SPÉCIFIQUE (pour les patients)
+
 
     @GetMapping("/docteur/{doctorId}")
     public ResponseEntity<?> getCreneauxDocteur(@PathVariable("doctorId") Long doctorId) {
@@ -240,7 +240,6 @@ public class CreneauController {
             return ResponseEntity.badRequest().build();
         }
     }
-
 
 
 }

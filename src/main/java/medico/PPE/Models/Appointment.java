@@ -47,8 +47,12 @@ public class Appointment {
     private String birthdate;
 	@Column(name = "gender")
     private String gender;
-
+	@Column(name = "appointment_type", nullable = false)
+    private String appointmentType; 
+	@Column(length = 1024)
 	private String zoomJoinUrl;
+
+    @Column(length = 64)
     private String zoomMeetingId;
 	@Column(name = "phone")
     private String phone;
@@ -76,6 +80,31 @@ public class Appointment {
 	private String preferredDate;
 	@Column(name = "preferredTime")
 	private String preferredTime;
-	
+	// Appointment.java — ajouter si absent
+
+	@Column(name = "zoom_start_url", length = 1024)
+	private String zoomStartUrl;
+
+	@Column(name = "zoom_password", length = 1024)
+	private String zoomPassword;
+
+	@Column(name = "meeting_url", length = 1024)
+	private String meetingUrl;
+
+	// Getters & Setters
+	public String getZoomMeetingId() { return zoomMeetingId; }
+	public void setZoomMeetingId(String zoomMeetingId) { this.zoomMeetingId = zoomMeetingId; }
+
+	public String getZoomJoinUrl() { return zoomJoinUrl; }
+	public void setZoomJoinUrl(String zoomJoinUrl) { this.zoomJoinUrl = zoomJoinUrl; }
+
+	public String getZoomStartUrl() { return zoomStartUrl; }
+	public void setZoomStartUrl(String zoomStartUrl) { this.zoomStartUrl = zoomStartUrl; }
+
+	public String getZoomPassword() { return zoomPassword; }
+	public void setZoomPassword(String zoomPassword) { this.zoomPassword = zoomPassword; }
+
+	public String getMeetingUrl() { return meetingUrl; }
+	public void setMeetingUrl(String meetingUrl) { this.meetingUrl = meetingUrl; }
 
 }

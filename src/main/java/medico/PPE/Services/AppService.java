@@ -31,4 +31,6 @@ public interface AppService {
     Appointment getAppointmentsByPatient(Long patientId);
 
     List<Appointment> getAllAppointmentsByPatient(Long patientId);
+    // AppService.java
+Appointment update(Appointment appointment);
 }

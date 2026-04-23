@@ -1,34 +1,65 @@
 package medico.PPE.Services;
 
-
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Component
 public class TokenStore {
-    private String accessToken;
-    private String refreshToken;
-    private Instant expiresAt;
+
+    @Autowired
+    private medico.PPE.Repositories.ZoomTokenRepository zoomTokenRepository;
 
     public synchronized void saveToken(String accessToken, String refreshToken, int expiresInSeconds) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.expiresAt = Instant.now().plusSeconds(expiresInSeconds - 60);
+        long safeExpiresInSeconds = Math.max(0L, (long) expiresInSeconds - 60L);
+        Instant expiresAt = Instant.now().plusSeconds(safeExpiresInSeconds);
+
+        zoomTokenRepository.deleteAll();
+
+        medico.PPE.Models.ZoomToken token = new medico.PPE.Models.ZoomToken(
+                accessToken, refreshToken, expiresAt);
+        zoomTokenRepository.save(token);
     }
 
+    /**
+     * Retourne le token ou NULL si absent — ne lève jamais d'exception.
+     */
     public synchronized String getAccessToken() {
-        if (accessToken == null || Instant.now().isAfter(expiresAt)) {
-            throw new RuntimeException("Access token expired or not available.");
+        Optional<medico.PPE.Models.ZoomToken> tokenOpt =
+                zoomTokenRepository.findTopByOrderByIdDesc();
+
+        if (tokenOpt.isEmpty() || tokenOpt.get().getAccessToken() == null) {
+            return null; // ✅ null au lieu d'une exception
         }
-        return accessToken;
+        return tokenOpt.get().getAccessToken();
     }
 
     public synchronized String getRefreshToken() {
-        return refreshToken;
+        Optional<medico.PPE.Models.ZoomToken> tokenOpt =
+                zoomTokenRepository.findTopByOrderByIdDesc();
+        return tokenOpt.map(medico.PPE.Models.ZoomToken::getRefreshToken).orElse(null);
     }
 
-    public synchronized boolean isExpired() {
-        return Instant.now().isAfter(expiresAt);
+    /**
+     * Vérifie si le token est expiré — retourne true si aucun token en base.
+     */
+    public synchronized boolean isTokenExpired() {
+        Optional<medico.PPE.Models.ZoomToken> tokenOpt =
+                zoomTokenRepository.findTopByOrderByIdDesc();
+
+        if (tokenOpt.isEmpty() || tokenOpt.get().getExpiresAt() == null) {
+            return true; // ✅ pas de token = considéré comme expiré
+        }
+        return Instant.now().isAfter(tokenOpt.get().getExpiresAt());
+    }
+
+    /**
+     * @deprecated Utiliser isTokenExpired() à la place
+     */
+    @Deprecated
+    public boolean isExpired() {
+        return isTokenExpired();
     }
 }

@@ -6,8 +6,9 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-@Configuration
-@EnableWebSocketMessageBroker
+// @Configuration
+// @EnableWebSocketMessageBroker
+// Disabled because it conflicts with Config.java and medico.PPE.configuration.WebSocketConfig
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override

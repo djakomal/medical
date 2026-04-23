@@ -5,6 +5,7 @@ package medico.PPE.Controllers;
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -13,6 +14,7 @@ import org.springframework.web.util.HtmlUtils;
 
 import medico.PPE.Services.NotiService;
 import medico.PPE.dtos.Message;
+import medico.PPE.dtos.SignalMessage;
 
 
 @Controller
@@ -38,4 +40,14 @@ public class MessageController {
         return message;
     }
 
-}
+    @MessageMapping("/signal/{roomId}")
+    @SendTo("/topic/room/{roomId}")
+    public SignalMessage handleSignal(
+            @DestinationVariable String roomId,
+            SignalMessage signal,
+            Principal principal) {
+        signal.setSenderId(principal.getName());
+        System.out.println("Signal [" + signal.getType() + "] dans room: " + roomId);
+        return signal;
+    }
+    }

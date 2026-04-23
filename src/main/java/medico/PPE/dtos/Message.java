@@ -1,4 +1,4 @@
-package medico.PPE.dtos
+package medico.PPE.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

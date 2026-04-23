@@ -42,7 +42,7 @@ private String phone;
 private String insurance;
 
 private String doctorType;
-
+private String appointmentType;
 private String otherSpecialist;
 
 private boolean consent;
@@ -60,7 +60,24 @@ private String medications;
 private String additionalInfo;
 private String preferredTime;
 private String preferredDate;
+private String meetingUrl;
+private String zoomMeetingId;
+private String zoomStartUrl;
+private String zoomPassword;
 
+// Getters & Setters
+public String getStatus() { return status; }
+public void setStatus(String status) { this.status = status; }
 
+public String getMeetingUrl() { return meetingUrl; }
+public void setMeetingUrl(String meetingUrl) { this.meetingUrl = meetingUrl; }
 
+public String getZoomMeetingId() { return zoomMeetingId; }
+public void setZoomMeetingId(String zoomMeetingId) { this.zoomMeetingId = zoomMeetingId; }
+
+public String getZoomStartUrl() { return zoomStartUrl; }
+public void setZoomStartUrl(String zoomStartUrl) { this.zoomStartUrl = zoomStartUrl; }
+
+public String getZoomPassword() { return zoomPassword; }
+public void setZoomPassword(String zoomPassword) { this.zoomPassword = zoomPassword; }
 }
