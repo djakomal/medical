@@ -51,7 +51,12 @@ public class Appointment {
     private String appointmentType; 
 	@Column(length = 1024)
 	private String zoomJoinUrl;
-
+	@Column(name = "medical_documents", columnDefinition = "LONGTEXT")
+    private String medicalDocuments; // Stockage JSON des documents
+    
+    // Getters et Setters
+    public String getMedicalDocuments() { return medicalDocuments; }
+    public void setMedicalDocuments(String medicalDocuments) { this.medicalDocuments = medicalDocuments; }
     @Column(length = 64)
     private String zoomMeetingId;
 	@Column(name = "phone")

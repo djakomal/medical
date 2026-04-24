@@ -33,4 +33,6 @@ public interface AppService {
     List<Appointment> getAllAppointmentsByPatient(Long patientId);
     // AppService.java
 Appointment update(Appointment appointment);
+
+Appointment updateMedicalDocuments(Long id, String medicalDocuments);
 }

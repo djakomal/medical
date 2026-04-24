@@ -269,5 +269,39 @@ public class AppointmentController {
                     .body(Map.of("message", "Erreur: " + e.getMessage()));
         }
 }
+// Dans AppointmentController.java, ajoutez ces endpoints
+@GetMapping("/{id}/documents")
+public ResponseEntity<?> getDocuments(@PathVariable Long id) {
+    try {
+        Appointment appointment = appService.getAppById(id);
+        if (appointment == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Rendez-vous non trouvé"));
+        }
+        return ResponseEntity.ok(Map.of(
+            "medicalDocuments", appointment.getMedicalDocuments()
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", e.getMessage()));
+    }
+}
+
+@PutMapping("/{id}/documents")
+public ResponseEntity<?> updateDocuments(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    try {
+        String medicalDocuments = body.get("medicalDocuments");
+        Appointment updated = appService.updateMedicalDocuments(id, medicalDocuments);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Documents mis à jour",
+            "medicalDocuments", updated.getMedicalDocuments()
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", e.getMessage()));
+    }
+}
+
 
 }

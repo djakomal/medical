@@ -44,7 +44,7 @@ private String insurance;
 private String doctorType;
 private String appointmentType;
 private String otherSpecialist;
-
+private String medicalDocuments;
 private boolean consent;
 
 private String reason;

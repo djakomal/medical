@@ -81,6 +81,7 @@ public class AppServiceImp implements AppService {
         appointment.setConsent(dto.isConsent());
         appointment.setAppointmentType(dto.getAppointmentType());
         appointment.setReason(dto.getReason());
+        appointment.setMedicalDocuments(dto.getMedicalDocuments());
         appointment.setSymptoms(dto.getSymptoms());
         appointment.setFirstVisit(dto.getFirstVisit());
         appointment.setAllergies(dto.getAllergies());
@@ -106,8 +107,15 @@ public class AppServiceImp implements AppService {
         return appointmentRepository.save(appointment);
     }
     
-
-
+    // Dans AppServiceImp.java
+    @Override
+    public Appointment updateMedicalDocuments(Long appointmentId, String medicalDocuments) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+            .orElseThrow(() -> new RuntimeException("Appointment not found with id: " + appointmentId));
+        
+        appointment.setMedicalDocuments(medicalDocuments);
+        return appointmentRepository.save(appointment);
+    }
     @Override
     public Appointment getAppById(Long id) {
         return appointmentRepository.findById(id).orElse(null);
@@ -331,11 +339,14 @@ public class AppServiceImp implements AppService {
         return sb.length() == 0 ? null : sb.toString();
     }
 
+    @Override
+    public Appointment update(Appointment appointment) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'update'");
+    }
+
    
-@Override
-public Appointment update(Appointment appointment) {
-    return appointmentRepository.save(appointment);
-}
+
 
 
 
