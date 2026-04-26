@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -303,5 +304,85 @@ public ResponseEntity<?> updateDocuments(@PathVariable Long id, @RequestBody Map
     }
 }
 
+// Dans AppointmentController.java
 
+// Récupérer les documents d'un rendez-vous
+@GetMapping("/{id}/medical-documents")
+public ResponseEntity<?> getMedicalDocuments(@PathVariable Long id) {
+    try {
+        Appointment appointment = appService.getAppById(id);
+        if (appointment == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Rendez-vous non trouvé"));
+        }
+        
+        String documents = appointment.getMedicalDocuments();
+        if (documents == null || documents.isEmpty()) {
+            return ResponseEntity.ok(Map.of(
+                "medicalDocuments", new String[0],
+                "count", 0
+            ));
+        }
+        
+        // Si les documents sont stockés en JSON
+        // List<String> docList = new ObjectMapper().readValue(documents, new TypeReference<List<String>>() {});
+        
+        // Ou si c'est une simple chaîne séparée par des virgules
+        String[] docArray = documents.split(",");
+        
+        return ResponseEntity.ok(Map.of(
+            "medicalDocuments", docArray,
+            "count", docArray.length
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", e.getMessage()));
+    }
+}
+
+// Ajouter/modifier les documents d'un rendez-vous
+@PutMapping("/{id}/medical-documents")
+public ResponseEntity<?> updateMedicalDocuments(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    try {
+        String medicalDocuments = body.get("medicalDocuments");
+        Appointment updated = appService.updateMedicalDocuments(id, medicalDocuments);
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Documents mis à jour",
+            "medicalDocuments", updated.getMedicalDocuments()
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", e.getMessage()));
+    }
+}
+
+// Récupérer tous les documents d'un patient (regroupés par rendez-vous)
+@GetMapping("/patient/{patientId}/all-documents")
+public ResponseEntity<?> getAllPatientDocuments(@PathVariable Long patientId) {
+    try {
+        List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
+        
+        List<Map<String, Object>> allDocuments = new ArrayList<>();
+        
+        for (Appointment apt : appointments) {
+            if (apt.getMedicalDocuments() != null && !apt.getMedicalDocuments().isEmpty()) {
+                Map<String, Object> docInfo = new HashMap<>();
+                docInfo.put("appointmentId", apt.getId());
+                docInfo.put("appointmentDate", apt.getPreferredDate());
+                docInfo.put("documents", apt.getMedicalDocuments().split(","));
+                allDocuments.add(docInfo);
+            }
+        }
+        
+        return ResponseEntity.ok(Map.of(
+            "documents", allDocuments,
+            "totalCount", allDocuments.stream().mapToInt(d -> ((String[])d.get("documents")).length).sum()
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", e.getMessage()));
+    }
+}
 }
