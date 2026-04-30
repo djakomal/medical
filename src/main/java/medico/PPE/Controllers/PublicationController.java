@@ -28,7 +28,8 @@ public class PublicationController {
             if (principal == null) {
                 return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
             }
-            Publication created = publicationService.creerPublication(publication);
+            // ← passer principal.getName() pour associer le docteur
+            Publication created = publicationService.creerPublication(publication, principal.getName());
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,9 +39,15 @@ public class PublicationController {
 
     // ── Lire tous ──────────────────────────────────────────
     @GetMapping
-    public ResponseEntity<List<Publication>> getAllPublications() {
+    public ResponseEntity<List<Publication>> getAllPublications(Principal principal) {
         try {
-            return new ResponseEntity<>(publicationService.getAllPublication(), HttpStatus.OK);
+            if (principal == null) {
+                return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            }
+            return new ResponseEntity<>(
+                publicationService.getAllPublication(principal.getName()), 
+                HttpStatus.OK
+            );
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

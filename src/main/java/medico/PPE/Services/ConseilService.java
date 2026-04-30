@@ -91,7 +91,10 @@
             return conseilRepository.findByDocteurId(docteurId);
         }
 
-        public List<Conseil> getAllConseils() {
-            return conseilRepository.findAllWithTags(); 
+        // Remplacer getAllConseils() par :
+        public List<Conseil> getAllConseils(String username) {
+            Docteur docteur = docteurRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
+            return conseilRepository.findByDocteurId(docteur.getId());
         }
     }

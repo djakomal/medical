@@ -39,12 +39,18 @@ public class ConseilController {
     
     // Récupérer tous les conseils
     @GetMapping
-    public ResponseEntity<List<Conseil>> getAllConseils() {
+    public ResponseEntity<List<Conseil>> getAllConseils(Principal principal) {
         try {
-            List<Conseil> conseils = conseilService.getAllConseils();
+            if (principal == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+    
+            List<Conseil> conseils = conseilService.getAllConseils(principal.getName());
             return new ResponseEntity<>(conseils, HttpStatus.OK);
+    
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     

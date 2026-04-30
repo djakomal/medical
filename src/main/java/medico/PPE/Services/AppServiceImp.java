@@ -123,7 +123,8 @@ public class AppServiceImp implements AppService {
 
     @Override
     public Appointment getAppointmentsByPatient(Long patientId){
-        return appointmentRepository.findById(patientId).orElse(null);
+        List<Appointment> appointments = appointmentRepository.findAppointmentsByPatientId(patientId);
+        return appointments.isEmpty() ? null : appointments.get(0);
     }
     
     @Override

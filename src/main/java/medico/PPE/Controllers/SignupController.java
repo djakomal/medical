@@ -4,13 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import medico.PPE.Models.Customer;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Services.AuthService;
+import medico.PPE.Services.CustomUserDetails;
 import medico.PPE.dtos.DocteurResponse;
 import medico.PPE.dtos.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpHeaders;
 
 import org.springframework.http.MediaType;
 import java.util.List;
@@ -53,18 +55,61 @@ public class SignupController {
         }
     }
     @DeleteMapping("/delete/user/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        boolean isDoctor = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_DOCTOR".equals(a.getAuthority()));
+
+        if (!isDoctor && !id.equals(userDetails.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         authService.delete(id);
         return ResponseEntity.noContent().build();
     }
     @GetMapping
+    @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<List<Customer>> getAll() {
         return ResponseEntity.ok(authService.getAll());
     }
 
     @GetMapping("/get/user/{id}")
-    public ResponseEntity<?> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<?> getCustomerById(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentification requise");
+        }
+
+        boolean isDoctor = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_DOCTOR".equals(a.getAuthority()));
+
+        if (!isDoctor && !id.equals(userDetails.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Accès refusé");
+        }
+
         Customer customer = authService.getCustomerById(id);
+        if (customer == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Customer introuvable");
+        }
+        return ResponseEntity.ok(customer);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentification requise");
+        }
+
+        boolean isDoctor = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_DOCTOR".equals(a.getAuthority()));
+
+        if (isDoctor) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Endpoint réservé au patient");
+        }
+
+        Customer customer = authService.getCustomerById(userDetails.getId());
         if (customer == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Customer introuvable");
         }

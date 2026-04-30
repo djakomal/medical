@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import medico.PPE.Models.Docteur;
 import medico.PPE.Models.Publication;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.Repositories.PublicationRepository;
@@ -29,23 +30,29 @@ public class PublicationService {
     }
 
     // ── Créer ──────────────────────────────────────────────
-    public Publication creerPublication(Publication publication) {
-        return publicationRepository.save(publication);
-    }
+public Publication creerPublication(Publication publication, String username) {
+    Docteur docteur = docteurRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
+    publication.setDocteur(docteur);
+    return publicationRepository.save(publication);
+}
 
     // ── Lire tous ──────────────────────────────────────────
-    public List<Publication> getAllPublication() {
-        return publicationRepository.findAll()
-                .stream()
-                .collect(Collectors.toList());
-    }
-
-    // ── Publiés seulement ──────────────────────────────────
-    public List<Publication> getPublicationPublies() {
-        return publicationRepository.findByPublieTrue()
-                .stream()
-                .collect(Collectors.toList());
-    }
+   // Ajouter dans PublicationService :
+public List<Publication> getAllPublication(String username) {
+    Docteur docteur = docteurRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Docteur non trouvé"));
+    return publicationRepository.findByDocteurId(docteur.getId());
+}
+public List<Publication> getPublicationPublies() {
+    List<Publication> all = publicationRepository.findAll();
+    System.out.println("Total publications: " + all.size());
+    all.forEach(p -> System.out.println("ID: " + p.getId() + " | publie: " + p.getPublie()));
+    
+    List<Publication> publiees = publicationRepository.findByPublieTrue();
+    System.out.println("Publications publiées: " + publiees.size());
+    return publiees;
+}
 
     // ── Lire par ID ────────────────────────────────────────
     public Publication getPublicationById(Long id) {

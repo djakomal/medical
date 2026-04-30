@@ -63,11 +63,15 @@ public class WebSecurityConfiguration {
                         // 🌐 ROUTES PUBLIQUES
                         // ============================================
                         .requestMatchers(
-                                "/signup/**",
                                 "/login/**",
                                 "/docteur/login/**",
                                 "/ws/**",
                                 "/error")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/signup",
+                                "/signup/code-activation",
+                                "/signup/docteur/add")
                         .permitAll()
                         .requestMatchers("/code-activation").permitAll()
                         .requestMatchers("/api/meetings/**").permitAll()
@@ -80,8 +84,10 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/ws/**", "/ws/info/**").permitAll()
                         .requestMatchers("api/appointment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/signup/docteur/all").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/signup/docteur/image/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/creneaux/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/creneaux/**").authenticated()
+                        
 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session

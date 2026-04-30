@@ -53,7 +53,9 @@ public class Docteur implements UserDetails {
 
         @Column(name = "numero_licence")
         private String numeroLicence;
-
+        @OneToMany(mappedBy = "docteur")
+        @JsonIgnore  // ← même chose ici
+        private List<Publication> publications;
         @Column(name = "annees_experience")
         private String anneesExperience;
 

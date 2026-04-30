@@ -4,6 +4,7 @@ import medico.PPE.Models.Appointment;
 import medico.PPE.Models.Docteur;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.Services.AppService;
+import medico.PPE.Services.CustomUserDetails;
 import medico.PPE.dtos.AppointmentDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,19 @@ public class AppointmentController {
 
     // ── Helpers privés ───────────────────────────────────────────
 
+    private Long getAuthenticatedUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomUserDetails userDetails) {
+            return userDetails.getId();
+        }
+        return null;
+    }
+
     private Long getDocteurIdFromToken() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -55,7 +69,13 @@ public class AppointmentController {
                 Long doctorId = getDocteurIdFromToken();
                 return ResponseEntity.ok(appService.getAppointmentByDoctor(doctorId));
             }
-            return ResponseEntity.ok(appService.getAll());
+
+            Long patientId = getAuthenticatedUserId();
+            if (patientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            return ResponseEntity.ok(appService.getAllAppointmentsByPatient(patientId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Erreur: " + e.getMessage()));
@@ -67,6 +87,19 @@ public class AppointmentController {
     @PostMapping("/add")
     public ResponseEntity<?> add(@RequestBody AppointmentDto dto) {
         try {
+            if (!isDoctor()) {
+                Long patientId = getAuthenticatedUserId();
+                if (patientId == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("message", "Authentification requise"));
+                }
+                if (dto.getPatientId() != null && !dto.getPatientId().equals(patientId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("message", "Accès refusé"));
+                }
+                dto.setPatientId(patientId);
+            }
+
             Appointment saved = appService.add(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
@@ -95,6 +128,18 @@ public class AppointmentController {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
                             .body(Map.of("message", "Accès refusé"));
                 }
+            } else {
+                Long patientId = getAuthenticatedUserId();
+                if (patientId == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("message", "Authentification requise"));
+                }
+                if (appointment.getPatient() == null ||
+                        appointment.getPatient().getId() == null ||
+                        !appointment.getPatient().getId().equals(patientId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("message", "Accès refusé"));
+                }
             }
             return ResponseEntity.ok(appointment);
         } catch (Exception e) {
@@ -108,14 +153,31 @@ public class AppointmentController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
+            Appointment appointment = appService.getAppById(id);
+            if (appointment == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Rendez-vous non trouvé"));
+            }
+
             if (isDoctor()) {
-                Appointment appointment = appService.getAppById(id);
-                if (appointment != null && appointment.getDoctor() != null) {
+                if (appointment.getDoctor() != null && appointment.getDoctor().getId() != null) {
                     Long docteurId = getDocteurIdFromToken();
                     if (!appointment.getDoctor().getId().equals(docteurId)) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(Map.of("message", "Suppression non autorisée"));
                     }
+                }
+            } else {
+                Long patientId = getAuthenticatedUserId();
+                if (patientId == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("message", "Authentification requise"));
+                }
+                if (appointment.getPatient() == null ||
+                        appointment.getPatient().getId() == null ||
+                        !appointment.getPatient().getId().equals(patientId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("message", "Suppression non autorisée"));
                 }
             }
             appService.delete(id);
@@ -130,6 +192,18 @@ public class AppointmentController {
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<?> getAppointmentsByPatient(@PathVariable Long patientId) {
+        if (!isDoctor()) {
+            Long authenticatedPatientId = getAuthenticatedUserId();
+            if (authenticatedPatientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            if (!authenticatedPatientId.equals(patientId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        }
+
         Appointment appointment = appService.getAppointmentsByPatient(patientId);
         if (appointment == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
@@ -139,6 +213,18 @@ public class AppointmentController {
 
     @GetMapping("/patient/all/{patientId}")
     public ResponseEntity<?> getAllAppointmentsByPatient(@PathVariable Long patientId) {
+        if (!isDoctor()) {
+            Long authenticatedPatientId = getAuthenticatedUserId();
+            if (authenticatedPatientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            if (!authenticatedPatientId.equals(patientId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        }
+
         List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
         return ResponseEntity.ok(appointments);
     }
@@ -149,20 +235,24 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> validateAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            if (isDoctor()) {
-                Appointment appointment = appService.getAppById(id);
-                if (appointment == null) {
-                    response.put("success", false);
-                    response.put("message", "Rendez-vous non trouvé");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                }
-                Long docteurId = getDocteurIdFromToken();
-                if (appointment.getDoctor() != null &&
-                        !appointment.getDoctor().getId().equals(docteurId)) {
-                    response.put("success", false);
-                    response.put("message", "Validation non autorisée");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-                }
+            if (!isDoctor()) {
+                response.put("success", false);
+                response.put("message", "Accès refusé");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            Appointment appointment = appService.getAppById(id);
+            if (appointment == null) {
+                response.put("success", false);
+                response.put("message", "Rendez-vous non trouvé");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            Long docteurId = getDocteurIdFromToken();
+            if (appointment.getDoctor() != null &&
+                    !appointment.getDoctor().getId().equals(docteurId)) {
+                response.put("success", false);
+                response.put("message", "Validation non autorisée");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
             Appointment validated = appService.validateAppointment(id);
             response.put("success", true);
@@ -182,15 +272,19 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> rejectAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            if (isDoctor()) {
-                Appointment appointment = appService.getAppById(id);
-                Long docteurId = getDocteurIdFromToken();
-                if (appointment != null && appointment.getDoctor() != null &&
-                        !appointment.getDoctor().getId().equals(docteurId)) {
-                    response.put("success", false);
-                    response.put("message", "Rejet non autorisé");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-                }
+            if (!isDoctor()) {
+                response.put("success", false);
+                response.put("message", "Accès refusé");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            Appointment appointment = appService.getAppById(id);
+            Long docteurId = getDocteurIdFromToken();
+            if (appointment != null && appointment.getDoctor() != null &&
+                    !appointment.getDoctor().getId().equals(docteurId)) {
+                response.put("success", false);
+                response.put("message", "Rejet non autorisé");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
             Appointment rejected = appService.rejectAppointment(id);
             response.put("success", true);
@@ -210,15 +304,19 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> startAppointment(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         try {
-            if (isDoctor()) {
-                Appointment appointment = appService.getAppById(id);
-                Long docteurId = getDocteurIdFromToken();
-                if (appointment != null && appointment.getDoctor() != null &&
-                        !appointment.getDoctor().getId().equals(docteurId)) {
-                    response.put("success", false);
-                    response.put("message", "Démarrage non autorisé");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-                }
+            if (!isDoctor()) {
+                response.put("success", false);
+                response.put("message", "Accès refusé");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            Appointment appointment = appService.getAppById(id);
+            Long docteurId = getDocteurIdFromToken();
+            if (appointment != null && appointment.getDoctor() != null &&
+                    !appointment.getDoctor().getId().equals(docteurId)) {
+                response.put("success", false);
+                response.put("message", "Démarrage non autorisé");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
             Appointment started = appService.startAppointment(id);
             response.put("success", true);
@@ -238,10 +336,22 @@ public class AppointmentController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateAppointment(@PathVariable Long id, @RequestBody AppointmentDto dto) {
         try {
+            if (!isDoctor()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+
             Appointment existing = appService.getAppById(id);
             if (existing == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("message", "Rendez-vous non trouvé avec ID: " + id));
+            }
+
+            Long docteurId = getDocteurIdFromToken();
+            if (existing.getDoctor() != null && existing.getDoctor().getId() != null
+                    && !existing.getDoctor().getId().equals(docteurId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
             }
 
             // Mise à jour partielle — seuls les champs non null sont modifiés
@@ -263,6 +373,17 @@ public class AppointmentController {
 @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<?> getAppointmentsByDoctor(@PathVariable Long doctorId) {
         try {
+            if (!isDoctor()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+
+            Long docteurId = getDocteurIdFromToken();
+            if (!docteurId.equals(doctorId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+
             List<Appointment> appointments = appService.getAppointmentByDoctor(doctorId);
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
@@ -279,6 +400,26 @@ public ResponseEntity<?> getDocuments(@PathVariable Long id) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "Rendez-vous non trouvé"));
         }
+
+        if (isDoctor()) {
+            Long docteurId = getDocteurIdFromToken();
+            if (appointment.getDoctor() != null && appointment.getDoctor().getId() != null
+                    && !appointment.getDoctor().getId().equals(docteurId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        } else {
+            Long patientId = getAuthenticatedUserId();
+            if (patientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            if (appointment.getPatient() == null || appointment.getPatient().getId() == null
+                    || !appointment.getPatient().getId().equals(patientId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        }
         return ResponseEntity.ok(Map.of(
             "medicalDocuments", appointment.getMedicalDocuments()
         ));
@@ -291,6 +432,24 @@ public ResponseEntity<?> getDocuments(@PathVariable Long id) {
 @PutMapping("/{id}/documents")
 public ResponseEntity<?> updateDocuments(@PathVariable Long id, @RequestBody Map<String, String> body) {
     try {
+        if (!isDoctor()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Accès refusé"));
+        }
+
+        Appointment appointment = appService.getAppById(id);
+        if (appointment == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", "Rendez-vous non trouvé"));
+        }
+
+        Long docteurId = getDocteurIdFromToken();
+        if (appointment.getDoctor() != null && appointment.getDoctor().getId() != null
+                && !appointment.getDoctor().getId().equals(docteurId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Accès refusé"));
+        }
+
         String medicalDocuments = body.get("medicalDocuments");
         Appointment updated = appService.updateMedicalDocuments(id, medicalDocuments);
         return ResponseEntity.ok(Map.of(
@@ -314,6 +473,26 @@ public ResponseEntity<?> getMedicalDocuments(@PathVariable Long id) {
         if (appointment == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "Rendez-vous non trouvé"));
+        }
+
+        if (isDoctor()) {
+            Long docteurId = getDocteurIdFromToken();
+            if (appointment.getDoctor() != null && appointment.getDoctor().getId() != null
+                    && !appointment.getDoctor().getId().equals(docteurId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        } else {
+            Long patientId = getAuthenticatedUserId();
+            if (patientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            if (appointment.getPatient() == null || appointment.getPatient().getId() == null
+                    || !appointment.getPatient().getId().equals(patientId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
         }
         
         String documents = appointment.getMedicalDocuments();
@@ -344,6 +523,24 @@ public ResponseEntity<?> getMedicalDocuments(@PathVariable Long id) {
 @PutMapping("/{id}/medical-documents")
 public ResponseEntity<?> updateMedicalDocuments(@PathVariable Long id, @RequestBody Map<String, String> body) {
     try {
+        if (!isDoctor()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Accès refusé"));
+        }
+
+        Appointment appointment = appService.getAppById(id);
+        if (appointment == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", "Rendez-vous non trouvé"));
+        }
+
+        Long docteurId = getDocteurIdFromToken();
+        if (appointment.getDoctor() != null && appointment.getDoctor().getId() != null
+                && !appointment.getDoctor().getId().equals(docteurId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Accès refusé"));
+        }
+
         String medicalDocuments = body.get("medicalDocuments");
         Appointment updated = appService.updateMedicalDocuments(id, medicalDocuments);
         
@@ -362,6 +559,18 @@ public ResponseEntity<?> updateMedicalDocuments(@PathVariable Long id, @RequestB
 @GetMapping("/patient/{patientId}/all-documents")
 public ResponseEntity<?> getAllPatientDocuments(@PathVariable Long patientId) {
     try {
+        if (!isDoctor()) {
+            Long authenticatedPatientId = getAuthenticatedUserId();
+            if (authenticatedPatientId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Authentification requise"));
+            }
+            if (!authenticatedPatientId.equals(patientId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Accès refusé"));
+            }
+        }
+
         List<Appointment> appointments = appService.getAllAppointmentsByPatient(patientId);
         
         List<Map<String, Object>> allDocuments = new ArrayList<>();

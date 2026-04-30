@@ -33,7 +33,13 @@ public class Publication {
     @Column(length = 10485760)
     private String imageUrl;
 
-    private Boolean publie = false;
+    private Boolean publie = true;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "docteur_id")
+    @JsonIgnore
+    private Docteur docteur;
     @PrePersist
     protected void onCreate() {
         if (datePublication == null) {
