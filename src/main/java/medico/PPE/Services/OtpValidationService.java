@@ -40,17 +40,17 @@ public class OtpValidationService {
         
     }
 
-    @Transactional                                               // ✅ gardé dans la même transaction
+    @Transactional                                              
     public void save(SignupRequest dto) {
 
         Customer user = customerRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // ✅ Supprimer un OTP existant pour ce customer avant d'en créer un nouveau
+        
         validationRepository.findByCustomer(user)
                 .ifPresent(existing -> {
                     validationRepository.delete(existing);
-                    validationRepository.flush();   // ✅ forcer la suppression avant l'insert
+                    validationRepository.flush();   
                 });
 
         OtpValidation validation = new OtpValidation();
@@ -97,7 +97,7 @@ public void saveForDocteur(Long docteurId) {
     validationRepository.save(validation);
     notificationService.send(validation);
 
-    log.info("✅ OTP généré pour le docteur : {}", docteur.getEmail());
+    log.info(" OTP généré pour le docteur : {}", docteur.getEmail());
 }
 
 

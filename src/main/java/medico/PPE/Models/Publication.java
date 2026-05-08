@@ -20,16 +20,12 @@ public class Publication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
     @Column(nullable = false)
     private String titre;
-    
     @Column(nullable = false, columnDefinition = "TEXT")
     private String contenu;
-    
     @Column(nullable = false)
     private LocalDate datePublication;
-    
     @Column(length = 10485760)
     private String imageUrl;
 
@@ -37,7 +33,7 @@ public class Publication {
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "docteur_id")
+    @JoinColumn(name = "docteur_id", nullable = true)
     @JsonIgnore
     private Docteur docteur;
     @PrePersist

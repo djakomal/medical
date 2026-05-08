@@ -93,8 +93,8 @@ public class ZoomMeetingService {
         settings.put("meeting_authentication", false);
         settings.put("join_before_host", false);
         //  Ajouter ces deux lignes :
-        settings.put("approval_type", 2);           // pas d'inscription requise mais waiting room actif
-        settings.put("registrants_email_notification", false);
+        // settings.put("approval_type", 2);           // pas d'inscription requise mais waiting room actif
+        // settings.put("registrants_email_notification", false);
         
         body.set("settings", settings);
 

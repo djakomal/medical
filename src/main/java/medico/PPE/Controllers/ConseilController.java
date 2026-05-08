@@ -36,8 +36,7 @@ public class ConseilController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-    // Récupérer tous les conseils
+
     @GetMapping
     public ResponseEntity<List<Conseil>> getAllConseils(Principal principal) {
         try {

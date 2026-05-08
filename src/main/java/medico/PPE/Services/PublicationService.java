@@ -100,4 +100,9 @@ public List<Publication> getPublicationPublies() {
         }
         publicationRepository.deleteById(id);
     }
+
+    // ── Récupérer par docteur ──────────────────────────────
+    public List<Publication> getPublicationsByDocteur(Long docteurId) {
+        return publicationRepository.findByDocteurId(docteurId);
+    }
 }

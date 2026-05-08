@@ -9,6 +9,8 @@ import medico.PPE.Repositories.CustomerRepository;
 import medico.PPE.Repositories.DoctorateRepository;
 import medico.PPE.dtos.AppointmentDto;
 import medico.PPE.dtos.ZoomResponse;
+
+import org.apache.juli.logging.Log;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,8 @@ public class AppServiceImp implements AppService {
     private final ZoomMeetingService zoomMeetingService;
     private final ZoomAuthService zoomAuthService;
     private final String zoomTimezone;
+    private final NotificationService notificationService;
+    
 
     @Autowired
     public AppServiceImp(
@@ -44,6 +48,7 @@ public class AppServiceImp implements AppService {
             CustomerRepository customerRepository,
             ZoomMeetingService zoomMeetingService,
             ZoomAuthService zoomAuthService,
+            NotificationService notificationService,
             @Value("${zoom.timezone:UTC}") String zoomTimezone) {
         this.appointmentRepository = appointmentRepository;
         this.doctorateRepository = doctorateRepository;
@@ -52,6 +57,7 @@ public class AppServiceImp implements AppService {
         this.zoomMeetingService = zoomMeetingService;
         this.zoomAuthService = zoomAuthService;
         this.zoomTimezone = zoomTimezone;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -107,7 +113,7 @@ public class AppServiceImp implements AppService {
         return appointmentRepository.save(appointment);
     }
     
-    // Dans AppServiceImp.java
+
     @Override
     public Appointment updateMedicalDocuments(Long appointmentId, String medicalDocuments) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -165,10 +171,22 @@ public class AppServiceImp implements AppService {
                     appointment.setZoomMeetingId(meeting.id());
                     appointment.setZoomJoinUrl(meeting.joinUrl());   // ← patient rejoint via ce lien
                     appointment.setZoomStartUrl(meeting.startUrl());
+                    String email     = appointment.getEmail();
+                    String prenom    = firstNonBlank(appointment.getFirstname(), "Patient");
+                    String doctorName = appointment.getDoctor() != null
+                            ? firstNonBlank(appointment.getDoctor().getName(),
+                                            appointment.getDoctor().getUsername(), "votre médecin")
+                            : "votre médecin";
+            
+                    if (email != null && !email.isBlank()) {
+                        notificationService.sendZoomLink(email, prenom, doctorName, meeting.joinUrl());
+                    } else {
+                        System.out.println("⚠️ Pas d'email pour le patient du RDV " + id);
+                    }
         }
         return appointmentRepository.save(appointment);
     }
-
+    
     @Override
     public void delete(Long id) {
         appointmentRepository.deleteById(id);

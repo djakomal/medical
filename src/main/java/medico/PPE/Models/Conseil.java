@@ -33,7 +33,7 @@ public class Conseil {
     private LocalDate datePublication;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "docteur_id", nullable = false)
+    @JoinColumn(name = "docteur_id", nullable = true)
     @JsonIgnore
     private Docteur docteur;
  

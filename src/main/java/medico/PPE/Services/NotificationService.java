@@ -41,6 +41,41 @@ public class NotificationService {
         ));
 
         javaMailSender.send(mailMessage);
-        log.info("✅ Email envoyé à : {}", email);
+        log.info(" Email envoyé à : {}", email);
     }
+
+
+    public void sendZoomLink(String emailPatient, String prenomPatient,
+        String nomDocteur, String joinUrl)
+         {
+            try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setFrom("MEDICO");
+            mailMessage.setTo(emailPatient);
+            mailMessage.setSubject("Votre consultation en ligne est prête");
+            mailMessage.setText(String.format("""
+            Bonjour %s,
+
+            Votre consultation avec Dr %s est maintenant prête.
+
+            Rejoindre la consultation :
+            %s
+
+            Aucun compte Zoom n'est requis.
+            Cliquez sur le lien, entrez votre prénom
+            et attendez que le médecin vous admette.
+
+            Cordialement,
+            L'équipe Medico
+            """, prenomPatient, nomDocteur, joinUrl));
+
+            javaMailSender.send(mailMessage);
+            log.info(" Lien Zoom envoyé à : {}", emailPatient);
+
+            } catch (Exception e) {
+            log.error("⚠️ Échec envoi email Zoom à {} : {}", emailPatient, e.getMessage());
+            }
+        }
+    
+            
 }

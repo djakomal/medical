@@ -107,4 +107,16 @@ public class PublicationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    // ── Récupérer par docteur ──────────────────────────────
+    @GetMapping("/docteur/{docteurId}")
+    public ResponseEntity<List<Publication>> getPublicationsByDocteur(@PathVariable Long docteurId) {
+        try {
+            List<Publication> publications = publicationService.getPublicationsByDocteur(docteurId);
+            return  ResponseEntity.ok(publications);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }   
+    }
+
 }
